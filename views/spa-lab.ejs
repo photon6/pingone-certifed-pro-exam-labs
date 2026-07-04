@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= lab.name %> — PingOne Labs</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container">
+    <%- include('partials/lab-content') %>
+
+    <section class="panel spa-panel">
+      <h2>Browser SPA Demo</h2>
+      <p>This lab runs OAuth entirely in the browser using PKCE — no client secret.</p>
+      <div id="spa-app" class="spa-app"
+        data-client-id="<%= clientId %>"
+        data-redirect-uri="<%= redirectUri %>"
+        data-issuer="<%= issuer %>"
+        data-auth-host="<%= authHost %>"
+        data-environment-id="<%= environmentId %>">
+        <div id="spa-status" class="alert info">Loading...</div>
+        <div id="spa-actions" class="actions hidden">
+          <button id="spa-login" class="btn" type="button">Sign in (PKCE)</button>
+          <button id="spa-logout" class="btn secondary hidden" type="button">Sign out</button>
+        </div>
+        <pre id="spa-output" class="hidden"></pre>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/spa/spa-client.js"></script>
+  <%- include('partials/footer') %>
+</body>
+</html>

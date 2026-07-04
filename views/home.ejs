@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — PingOne Certified Pro</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container dashboard-layout">
+    <%- include('partials/sidebar-nav') %>
+    <div class="dashboard-content">
+      <section class="hero">
+        <h1>Study Dashboard</h1>
+        <p>Welcome to your PingOne Certified Professional exam prep workspace.</p>
+      </section>
+
+      <section class="config-status <%= pingoneConfig.environmentId ? 'ok' : 'warn' %>">
+        <h2>PingOne Environment</h2>
+        <dl>
+          <dt>Environment ID</dt><dd><code><%= pingoneConfig.environmentId || 'Not set' %></code></dd>
+          <dt>Region</dt><dd><code><%= pingoneConfig.region %></code></dd>
+          <dt>Issuer</dt><dd><code><%= pingoneConfig.issuer || 'Configure PINGONE_ENVIRONMENT_ID' %></code></dd>
+        </dl>
+        <% if (!pingoneConfig.environmentId) { %>
+          <p class="hint">Copy <code>.env.example</code> to <code>.env</code> and fill in your PingOne environment details.</p>
+        <% } %>
+      </section>
+
+      <section class="panel">
+        <h2>Get Started</h2>
+        <p>Select a study area from the menu, or jump directly into the labs below.</p>
+        <div class="menu-cards">
+          <% navItems.filter(function(i) { return i.id !== 'home'; }).forEach(function(item) { %>
+            <a href="<%= item.path %>" class="menu-card">
+              <h3><%= item.label %></h3>
+              <p><%= item.description %></p>
+              <span class="menu-card-link">Open →</span>
+            </a>
+          <% }); %>
+        </div>
+      </section>
+    </div>
+  </main>
+  <%- include('partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= lab.name %> — PingOne Labs</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container">
+    <%- include('partials/lab-content') %>
+
+    <section class="panel">
+      <h2>Security Control Variants</h2>
+      <% if (configured && !user) { %>
+        <div class="actions">
+          <a class="btn" href="/labs/enhanced-security/login">Auth Code + PKCE</a>
+          <a class="btn" href="/labs/enhanced-security/login-par">PAR + PKCE</a>
+          <a class="btn" href="/labs/enhanced-security/login-stepup">PAR + PKCE + Step-up (acr_values)</a>
+        </div>
+      <% } %>
+      <% if (authMethod) { %>
+        <p>Last auth method: <strong><%= authMethod %></strong></p>
+      <% } %>
+    </section>
+  </main>
+  <%- include('partials/footer') %>
+</body>
+</html>

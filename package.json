@@ -1,0 +1,32 @@
+{
+  "name": "pingone-certifed-pro-exam-labs",
+  "version": "1.0.0",
+  "description": "Hands-on lab utilities for studying PingOne Certified Professional OAuth/OIDC integration patterns",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "stop": "node scripts/stop.js",
+    "dev": "node --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "pingone",
+    "oidc",
+    "oauth",
+    "certification",
+    "labs"
+  ],
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "jose": "^5.9.6",
+    "openid-client": "^5.7.1",
+    "uuid": "^11.0.5"
+  }
+}

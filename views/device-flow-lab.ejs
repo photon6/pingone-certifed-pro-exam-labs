@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= lab.name %> — PingOne Labs</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container">
+    <%- include('partials/lab-content') %>
+
+    <section class="panel">
+      <h2>Device Authorization Flow</h2>
+      <% if (configured) { %>
+        <% if (!device) { %>
+          <form method="post" action="/labs/device-flow/start">
+            <button type="submit" class="btn">Start Device Flow</button>
+          </form>
+        <% } else { %>
+          <div class="device-codes">
+            <p>Visit the verification URI and enter the user code:</p>
+            <dl>
+              <dt>Verification URI</dt>
+              <dd><a href="<%= device.verification_uri_complete || device.verification_uri %>" target="_blank"><%= device.verification_uri %></a></dd>
+              <dt>User Code</dt>
+              <dd class="user-code"><%= device.user_code %></dd>
+              <dt>Expires in</dt>
+              <dd><%= device.expires_in %> seconds</dd>
+            </dl>
+            <form method="post" action="/labs/device-flow/poll">
+              <button type="submit" class="btn">Poll for Token</button>
+            </form>
+            <form method="post" action="/labs/device-flow/clear">
+              <button type="submit" class="btn secondary">Reset</button>
+            </form>
+          </div>
+        <% } %>
+        <% if (status === 'complete' && tokens) { %>
+          <div class="result success">
+            <h3>Tokens received</h3>
+            <pre><%= JSON.stringify(tokens, null, 2) %></pre>
+          </div>
+        <% } %>
+        <% if (status === 'error') { %>
+          <div class="alert error"><%= error %></div>
+        <% } %>
+      <% } %>
+    </section>
+  </main>
+  <%- include('partials/footer') %>
+</body>
+</html>

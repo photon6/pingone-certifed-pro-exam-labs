@@ -1,0 +1,65 @@
+<header class="lab-header">
+  <h1><%= lab.name %></h1>
+  <div class="lab-badges">
+    <span class="badge"><%= lab.pingoneType %></span>
+    <span class="badge secondary"><%= lab.grant %></span>
+    <span class="badge secondary"><%= lab.clientType %></span>
+  </div>
+  <p class="lab-desc"><%= lab.description %></p>
+</header>
+
+<% if (!configured) { %>
+  <div class="alert warn">
+    <strong>Configuration required:</strong> <%= configError %>
+  </div>
+<% } %>
+
+<section class="panel">
+  <h2>PingOne Setup</h2>
+  <ol class="setup-steps">
+    <li>In PingOne admin, create a <strong><%= lab.pingoneType %></strong> application.</li>
+    <% if (typeof redirectUri !== 'undefined' && redirectUri) { %>
+      <li>Set redirect URI to: <code><%= redirectUri %></code></li>
+    <% } else { %>
+      <li>No redirect URI required for this grant type.</li>
+    <% } %>
+    <li>Copy Client ID (and Secret if confidential) into your <code>.env</code> file.</li>
+    <li>Enable required grant type: <strong><%= lab.grant %></strong></li>
+  </ol>
+  <div class="exam-topics">
+    <strong>Exam topics:</strong>
+    <% lab.examTopics.forEach(function(topic) { %>
+      <span class="topic-tag"><%= topic %></span>
+    <% }); %>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Try It</h2>
+  <% if (typeof hideTryIt !== 'undefined' && hideTryIt) { %>
+    <p class="hint">Use the demo controls below.</p>
+  <% } else if (user) { %>
+    <div class="result success">
+      <h3>Signed in</h3>
+      <pre><%= JSON.stringify(user, null, 2) %></pre>
+      <% if (tokens) { %>
+        <h4>Token summary</h4>
+        <pre><%= JSON.stringify(tokens, null, 2) %></pre>
+      <% } %>
+      <% if (typeof refreshHistory !== 'undefined' && refreshHistory.length) { %>
+        <h4>Refresh history</h4>
+        <pre><%= JSON.stringify(refreshHistory, null, 2) %></pre>
+      <% } %>
+      <div class="actions">
+        <% if (lab.id === 'long-session') { %>
+          <form method="post" action="/labs/long-session/refresh"><button type="submit" class="btn">Refresh Token</button></form>
+        <% } %>
+        <form method="post" action="<%= lab.path %>/logout"><button type="submit" class="btn secondary">Sign Out</button></form>
+      </div>
+    </div>
+  <% } else if (configured) { %>
+    <p><%= typeof pkceNote !== 'undefined' ? pkceNote : '' %></p>
+    <% if (typeof scopeNote !== 'undefined') { %><p class="hint"><%= scopeNote %></p><% } %>
+    <a class="btn" href="<%= lab.path %>/login">Sign in with PingOne</a>
+  <% } %>
+</section>

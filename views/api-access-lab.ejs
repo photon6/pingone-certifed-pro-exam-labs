@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= lab.name %> — PingOne Labs</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container">
+    <header class="lab-header">
+      <h1><%= lab.name %></h1>
+      <div class="lab-badges">
+        <span class="badge"><%= lab.pingoneType %></span>
+        <span class="badge secondary"><%= lab.grant %></span>
+      </div>
+      <p class="lab-desc"><%= lab.description %></p>
+    </header>
+
+    <% if (!configured) { %>
+      <div class="alert warn"><strong>Configuration required:</strong> <%= configError %></div>
+    <% } %>
+
+    <section class="panel">
+      <h2>API Endpoints</h2>
+      <table class="api-table">
+        <thead><tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>GET /labs/api-access/api/public</code></td>
+            <td>None</td>
+            <td>Public health-style endpoint</td>
+          </tr>
+          <tr>
+            <td><code>GET /labs/api-access/api/protected</code></td>
+            <td>Bearer JWT</td>
+            <td>Validates PingOne access token signature &amp; issuer</td>
+          </tr>
+          <tr>
+            <td><code>GET /labs/api-access/api/scoped</code></td>
+            <td>Bearer + scope</td>
+            <td>Requires <code>read:labs</code> scope in token</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="hint">Obtain an access token from another lab (e.g. Web Auth or M2M), then test with curl:</p>
+      <pre>curl -H "Authorization: Bearer &lt;access_token&gt;" <%= typeof baseUrl !== 'undefined' ? baseUrl : '' %>/labs/api-access/api/protected</pre>
+    </section>
+  </main>
+  <%- include('partials/footer') %>
+</body>
+</html>

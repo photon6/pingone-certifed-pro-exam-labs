@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OIDC/OAuth Exam Labs — PingOne Certified Pro</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container dashboard-layout">
+    <%- include('partials/sidebar-nav') %>
+    <div class="dashboard-content">
+      <section class="hero">
+        <h1>OIDC/OAuth Exam Labs</h1>
+        <p>Hands-on integration patterns mapped to PingOne application types and grant flows.</p>
+      </section>
+
+      <section class="config-status <%= pingoneConfig.environmentId ? 'ok' : 'warn' %>">
+        <h2>Environment</h2>
+        <dl>
+          <dt>Environment ID</dt><dd><code><%= pingoneConfig.environmentId || 'Not set' %></code></dd>
+          <dt>Region</dt><dd><code><%= pingoneConfig.region %></code></dd>
+          <dt>Issuer</dt><dd><code><%= pingoneConfig.issuer || 'Configure PINGONE_ENVIRONMENT_ID' %></code></dd>
+          <dt>Base URL</dt><dd><code><%= pingoneConfig.baseUrl %></code></dd>
+        </dl>
+      </section>
+
+      <section class="lab-grid">
+        <% labs.forEach(function(l) { %>
+          <article class="lab-card">
+            <div class="lab-card-header">
+              <h3><a href="<%= l.path %>"><%= l.name %></a></h3>
+              <span class="badge"><%= l.pingoneType %></span>
+            </div>
+            <p><%= l.description %></p>
+            <ul class="meta">
+              <li><strong>Grant:</strong> <%= l.grant %></li>
+              <li><strong>Client:</strong> <%= l.clientType %></li>
+            </ul>
+            <div class="exam-topics">
+              <% l.examTopics.forEach(function(topic) { %>
+                <span class="topic-tag"><%= topic %></span>
+              <% }); %>
+            </div>
+            <a class="btn" href="<%= l.path %>">Open Lab →</a>
+          </article>
+        <% }); %>
+      </section>
+    </div>
+  </main>
+  <%- include('partials/footer') %>
+</body>
+</html>

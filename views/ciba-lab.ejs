@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= lab.name %> — PingOne Labs</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container">
+    <%- include('partials/lab-content') %>
+
+    <section class="panel">
+      <h2>CIBA Backchannel Authentication</h2>
+      <% if (configured) { %>
+        <% if (!authRequest) { %>
+          <form method="post" action="/labs/ciba/initiate" class="stacked-form">
+            <label>Login hint (user email/username)
+              <input type="text" name="loginHint" required placeholder="user@example.com">
+            </label>
+            <label>Binding message (shown to user)
+              <input type="text" name="bindingMessage" value="PingOne CIBA Lab">
+            </label>
+            <button type="submit" class="btn">Initiate CIBA</button>
+          </form>
+        <% } else { %>
+          <div class="result info">
+            <p>User should approve the request on their PingOne authenticator app.</p>
+            <pre><%= JSON.stringify(authRequest, null, 2) %></pre>
+            <form method="post" action="/labs/ciba/poll"><button type="submit" class="btn">Poll for Token</button></form>
+            <form method="post" action="/labs/ciba/clear"><button type="submit" class="btn secondary">Reset</button></form>
+          </div>
+        <% } %>
+        <% if (status === 'complete' && tokens) { %>
+          <div class="result success">
+            <h3>Tokens received</h3>
+            <pre><%= JSON.stringify(tokens, null, 2) %></pre>
+          </div>
+        <% } %>
+        <% if (status === 'error') { %>
+          <div class="alert error"><%= error %></div>
+        <% } %>
+      <% } %>
+    </section>
+  </main>
+  <%- include('partials/footer') %>
+</body>
+</html>

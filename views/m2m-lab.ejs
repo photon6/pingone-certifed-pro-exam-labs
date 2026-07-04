@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= lab.name %> — PingOne Labs</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container">
+    <%- include('partials/lab-content') %>
+
+    <section class="panel">
+      <h2>Client Credentials Grant</h2>
+      <% if (configured) { %>
+        <form method="post" action="/labs/m2m/token" class="inline-form">
+          <label>Scope <input type="text" name="scope" value="openid" placeholder="openid or custom scopes"></label>
+          <button type="submit" class="btn">Request Access Token</button>
+        </form>
+        <% if (lastToken) { %>
+          <div class="result success">
+            <h3>Token received</h3>
+            <pre><%= JSON.stringify(lastToken, null, 2) %></pre>
+            <form method="post" action="/labs/m2m/clear"><button type="submit" class="btn secondary">Clear</button></form>
+          </div>
+        <% } %>
+      <% } %>
+    </section>
+  </main>
+  <%- include('partials/footer') %>
+</body>
+</html>

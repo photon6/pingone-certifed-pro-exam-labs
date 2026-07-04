@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= lab.name %> — PingOne Labs</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container">
+    <%- include('partials/lab-content') %>
+
+    <section class="panel">
+      <h2>Token Exchange (RFC 8693)</h2>
+      <% if (configured) { %>
+        <div class="actions">
+          <a class="btn" href="/labs/token-exchange/login">1. Get user access token (Auth Code)</a>
+        </div>
+        <% if (subjectTokenPreview) { %>
+          <p>Subject token: <code><%= subjectTokenPreview %></code></p>
+          <form method="post" action="/labs/token-exchange/exchange-user-token" class="stacked-form">
+            <label>Audience (target client ID, optional)
+              <input type="text" name="audience" placeholder="TOKEN_EXCHANGE_TARGET_CLIENT_ID">
+            </label>
+            <label>Requested scope (optional)
+              <input type="text" name="scope" placeholder="e.g. read:labs">
+            </label>
+            <button type="submit" class="btn">Exchange user token</button>
+          </form>
+        <% } %>
+        <hr>
+        <form method="post" action="/labs/token-exchange/exchange-m2m-token" class="stacked-form">
+          <h3>Or exchange a client-credentials token</h3>
+          <label>Scope <input type="text" name="scope" value="openid"></label>
+          <label>Audience <input type="text" name="audience" placeholder="target client ID"></label>
+          <button type="submit" class="btn secondary">Exchange M2M token</button>
+        </form>
+        <% if (exchangeResult) { %>
+          <div class="result success">
+            <h3>Exchanged token</h3>
+            <pre><%= JSON.stringify(exchangeResult, null, 2) %></pre>
+            <form method="post" action="/labs/token-exchange/clear"><button type="submit" class="btn secondary">Clear</button></form>
+          </div>
+        <% } %>
+      <% } %>
+    </section>
+  </main>
+  <%- include('partials/footer') %>
+</body>
+</html>

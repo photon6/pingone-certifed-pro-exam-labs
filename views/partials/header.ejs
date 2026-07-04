@@ -1,0 +1,13 @@
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="logo">PingOne Certified Pro</a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <% navItems.forEach(function(item) { %>
+        <a href="<%= item.path %>"
+           class="site-nav-link <%= activeNav === item.id ? 'active' : '' %>">
+          <%= item.label %>
+        </a>
+      <% }); %>
+    </nav>
+  </div>
+</header>
