@@ -22,8 +22,9 @@ router.get('/', (req, res) => {
   res.render('lab', {
     lab,
     configured,
-    configError: missingConfigMessage('LONG_SESSION', config.clientId),
+    configError: missingConfigMessage('long-session', config.clientId, config.tokenAuthMethod),
     redirectUri: config.redirectUri,
+    tokenAuthMethod: config.tokenAuthMethod,
     user: session?.userinfo || null,
     tokens: session?.tokens ? summarizeTokens(session.tokens) : null,
     refreshHistory: session?.refreshHistory || [],

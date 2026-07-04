@@ -4,6 +4,7 @@ import { asyncHandler } from '../../middleware/error-handler.js';
 import {
   createConfidentialClient,
   buildAuthorizationUrl,
+  buildSignedAuthorizationUrl,
   authorizationCodeGrant,
   pushedAuthorizationRequest,
   generatePkce,
@@ -22,8 +23,9 @@ router.get('/', (req, res) => {
   res.render('enhanced-security-lab', {
     lab,
     configured,
-    configError: missingConfigMessage('ENHANCED_SECURITY', config.clientId),
+    configError: missingConfigMessage('enhanced-security', config.clientId, config.tokenAuthMethod),
     redirectUri: config.redirectUri,
+    tokenAuthMethod: config.tokenAuthMethod,
     user: req.session.enhancedSecurity?.userinfo || null,
     tokens: req.session.enhancedSecurity?.tokens ? summarizeTokens(req.session.enhancedSecurity.tokens) : null,
     authMethod: req.session.enhancedSecurity?.authMethod || null,
@@ -43,7 +45,11 @@ router.get('/login-stepup', asyncHandler(async (req, res) => {
   await startAuth(req, res, { usePar: true, acrValues: 'urn:pingone:loa:high' });
 }));
 
-async function startAuth(req, res, { usePar, acrValues }) {
+router.get('/login-signed-request', asyncHandler(async (req, res) => {
+  await startAuth(req, res, { usePar: false, useSignedRequest: true, acrValues: null });
+}));
+
+async function startAuth(req, res, { usePar, useSignedRequest = false, acrValues }) {
   const oauthClient = await createConfidentialClient(config);
   const state = generateState();
   const nonce = generateNonce();
@@ -53,7 +59,11 @@ async function startAuth(req, res, { usePar, acrValues }) {
     state,
     nonce,
     code_verifier,
-    authMethod: usePar ? (acrValues ? 'PAR + PKCE + Step-up' : 'PAR + PKCE') : 'PKCE only',
+    authMethod: useSignedRequest
+      ? 'Signed Request JWT (RS256) + PKCE'
+      : usePar
+        ? (acrValues ? 'PAR + PKCE + Step-up' : 'PAR + PKCE')
+        : 'PKCE only',
   };
 
   const authParams = {
@@ -62,8 +72,15 @@ async function startAuth(req, res, { usePar, acrValues }) {
     nonce,
     code_challenge,
     code_challenge_method: 'S256',
+    redirect_uri: config.redirectUri,
+    response_type: 'code',
   };
   if (acrValues) authParams.acr_values = acrValues;
+
+  if (useSignedRequest) {
+    const url = await buildSignedAuthorizationUrl(oauthClient, authParams, config.clientId);
+    return res.redirect(url);
+  }
 
   if (usePar) {
     const parResponse = await pushedAuthorizationRequest(oauthClient, authParams);

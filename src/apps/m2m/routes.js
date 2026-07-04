@@ -14,7 +14,8 @@ router.get('/', (req, res) => {
   res.render('m2m-lab', {
     lab,
     configured,
-    configError: missingConfigMessage('M2M', config.clientId),
+    configError: missingConfigMessage('m2m', config.clientId, config.tokenAuthMethod),
+    tokenAuthMethod: config.tokenAuthMethod,
     lastToken: req.session.m2m?.lastToken || null,
     hideTryIt: true,
   });
@@ -26,6 +27,7 @@ router.post('/token', asyncHandler(async (req, res) => {
     clientId: config.clientId,
     clientSecret: config.clientSecret,
     scope,
+    tokenAuthMethod: config.tokenAuthMethod,
   });
 
   req.session.m2m = {

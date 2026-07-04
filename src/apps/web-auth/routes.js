@@ -30,9 +30,10 @@ router.get('/', asyncHandler(async (req, res) => {
   res.render('lab', {
     lab,
     configured,
-    configError: missingConfigMessage('WEB_AUTH', config.clientId),
+    configError: missingConfigMessage('web-auth', config.clientId, config.tokenAuthMethod),
     redirectUri: config.redirectUri,
     clientId: config.clientId,
+    tokenAuthMethod: config.tokenAuthMethod,
     appVerification,
     notFoundChecklist,
     user: req.session.webAuth?.userinfo || null,

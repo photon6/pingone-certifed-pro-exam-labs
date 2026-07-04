@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { normalizeTokenAuthMethod, usesPrivateKeyJwt } from '../lib/jwks.js';
 
 dotenv.config();
 
@@ -26,10 +27,18 @@ export const pingoneConfig = {
 
 export function appConfig(key, defaults = {}) {
   const prefix = key.toUpperCase();
+  const globalMethod = process.env.PINGONE_TOKEN_AUTH_METHOD || 'client_secret_basic';
+  const tokenAuthMethod = normalizeTokenAuthMethod(
+    process.env[`${prefix}_TOKEN_AUTH_METHOD`] || globalMethod,
+  );
+
   return {
     clientId: process.env[`${prefix}_CLIENT_ID`] || defaults.clientId || '',
     clientSecret: process.env[`${prefix}_CLIENT_SECRET`] || defaults.clientSecret || '',
     redirectUri: `${baseUrl}${defaults.path || ''}/callback`,
+    tokenAuthMethod,
+    usesPrivateKeyJwt: usesPrivateKeyJwt(tokenAuthMethod),
+    signingAlg: (process.env.JWKS_SIGNING_ALG || 'RS256').toUpperCase(),
     ...defaults,
   };
 }
@@ -38,12 +47,15 @@ export function isConfigured(clientId) {
   return Boolean(clientId && pingoneConfig.environmentId);
 }
 
-export function missingConfigMessage(appName, clientId) {
+export function missingConfigMessage(appName, clientId, tokenAuthMethod = 'client_secret_basic') {
   if (!pingoneConfig.environmentId) {
     return 'Set PINGONE_ENVIRONMENT_ID in your .env file.';
   }
   if (!clientId) {
-    return `Set ${appName.toUpperCase().replace(/-/g, '_')}_CLIENT_ID (and secret if required) in your .env file.`;
+    return `Set ${appName.toUpperCase().replace(/-/g, '_')}_CLIENT_ID in your .env file.`;
+  }
+  if (!usesPrivateKeyJwt(tokenAuthMethod) && !process.env[`${appName.toUpperCase().replace(/-/g, '_')}_CLIENT_SECRET`]) {
+    return `Set ${appName.toUpperCase().replace(/-/g, '_')}_CLIENT_SECRET in your .env file (or use TOKEN_AUTH_METHOD=private_key_jwt).`;
   }
   return null;
 }

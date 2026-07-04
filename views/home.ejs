@@ -20,8 +20,9 @@
         <h2>PingOne Environment</h2>
         <dl>
           <dt>Environment ID</dt><dd><code><%= pingoneConfig.environmentId || 'Not set' %></code></dd>
-          <dt>Region</dt><dd><code><%= pingoneConfig.region %></code></dd>
-          <dt>Issuer</dt><dd><code><%= pingoneConfig.issuer || 'Configure PINGONE_ENVIRONMENT_ID' %></code></dd>
+    <dt>Region</dt><dd><code><%= pingoneConfig.region %></code></dd>
+    <dt>Auth host</dt><dd><code><%= pingoneConfig.authHost %></code></dd>
+    <dt>Issuer</dt><dd><code><%= pingoneConfig.issuer || 'Configure PINGONE_ENVIRONMENT_ID' %></code></dd>
         </dl>
         <% if (!pingoneConfig.environmentId) { %>
           <p class="hint">Copy <code>.env.example</code> to <code>.env</code> and fill in your PingOne environment details.</p>

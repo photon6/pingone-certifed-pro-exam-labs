@@ -16,7 +16,9 @@ import deviceFlowRoutes from './apps/device-flow/routes.js';
 import cibaRoutes from './apps/ciba/routes.js';
 import tokenExchangeRoutes from './apps/token-exchange/routes.js';
 import enhancedSecurityRoutes from './apps/enhanced-security/routes.js';
+import jwksRoutes from './routes/jwks.js';
 import { errorHandler } from './middleware/error-handler.js';
+import { getJwksSetupInfo } from './lib/jwks.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -40,20 +42,26 @@ app.use(session({
   },
 }));
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   res.locals.baseUrl = pingoneConfig.baseUrl;
   res.locals.navItems = navItems;
   if (req.path === '/') {
     res.locals.activeNav = 'home';
-  } else if (req.path === '/labs' || req.path.startsWith('/labs/')) {
+  } else if (req.path === '/labs' || req.path.startsWith('/labs/') || req.path.startsWith('/jwks')) {
     res.locals.activeNav = 'oidc-labs';
   } else {
     res.locals.activeNav = null;
+  }
+  try {
+    res.locals.jwksSetup = await getJwksSetupInfo();
+  } catch (err) {
+    res.locals.jwksSetup = { configured: false, error: err.message };
   }
   next();
 });
 
 app.use('/', indexRoutes);
+app.use('/', jwksRoutes);
 app.use('/labs/web-auth', webAuthRoutes);
 app.use('/labs/mobile', mobileRoutes);
 app.use('/labs/spa', spaRoutes);

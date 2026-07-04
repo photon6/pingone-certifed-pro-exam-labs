@@ -1,5 +1,11 @@
 import * as client from 'openid-client';
 import { pingoneConfig } from '../config/pingone.js';
+import {
+  getPrivateJwksForClient,
+  getKeyMaterial,
+  normalizeTokenAuthMethod,
+  signRequestObject,
+} from './jwks.js';
 
 let issuerPromise;
 
@@ -19,33 +25,64 @@ export function getIssuer() {
   return issuerPromise;
 }
 
-export async function createConfidentialClient({ clientId, clientSecret, redirectUri, responseTypes = ['code'] }) {
-  const issuer = await getIssuer();
-  return new issuer.Client({
+async function buildClientMetadata({
+  clientId,
+  clientSecret,
+  redirectUri,
+  responseTypes = ['code'],
+  tokenAuthMethod = 'client_secret_basic',
+}) {
+  const method = normalizeTokenAuthMethod(tokenAuthMethod);
+  const metadata = {
     client_id: clientId,
-    client_secret: clientSecret,
-    redirect_uris: [redirectUri],
+    redirect_uris: redirectUri ? [redirectUri] : undefined,
     response_types: responseTypes,
+    token_endpoint_auth_method: method,
+  };
+
+  if (method === 'private_key_jwt') {
+    const { signingAlg } = await getKeyMaterial();
+    metadata.token_endpoint_auth_signing_alg = signingAlg;
+    metadata.jwks = await getPrivateJwksForClient();
+  } else if (method !== 'none') {
+    metadata.client_secret = clientSecret;
+  }
+
+  return metadata;
+}
+
+export async function createOAuthClient(options) {
+  const issuer = await getIssuer();
+  const metadata = await buildClientMetadata(options);
+  return new issuer.Client(metadata);
+}
+
+export async function createConfidentialClient(options) {
+  return createOAuthClient({
+    ...options,
+    tokenAuthMethod: options.tokenAuthMethod || 'client_secret_basic',
   });
 }
 
 export async function createPublicClient({ clientId, redirectUri, responseTypes = ['code'] }) {
-  const issuer = await getIssuer();
-  return new issuer.Client({
-    client_id: clientId,
-    redirect_uris: [redirectUri],
-    response_types: responseTypes,
-    token_endpoint_auth_method: 'none',
+  return createOAuthClient({
+    clientId,
+    redirectUri,
+    responseTypes,
+    tokenAuthMethod: 'none',
   });
 }
 
-export async function clientCredentialsToken({ clientId, clientSecret, scope }) {
+export async function createWorkerClient({ clientId, clientSecret, tokenAuthMethod = 'client_secret_basic' }) {
   const issuer = await getIssuer();
-  const oauthClient = new issuer.Client({
-    client_id: clientId,
-    client_secret: clientSecret,
-    token_endpoint_auth_method: 'client_secret_basic',
-  });
+  const metadata = await buildClientMetadata({ clientId, clientSecret, tokenAuthMethod });
+  delete metadata.redirect_uris;
+  delete metadata.response_types;
+  return new issuer.Client(metadata);
+}
+
+export async function clientCredentialsToken({ clientId, clientSecret, scope, tokenAuthMethod }) {
+  const oauthClient = await createWorkerClient({ clientId, clientSecret, tokenAuthMethod });
   return oauthClient.grant({ grant_type: 'client_credentials', scope });
 }
 
@@ -57,13 +94,9 @@ export async function exchangeToken({
   audience,
   scope,
   requestedTokenType = 'urn:ietf:params:oauth:token-type:access_token',
+  tokenAuthMethod,
 }) {
-  const issuer = await getIssuer();
-  const oauthClient = new issuer.Client({
-    client_id: clientId,
-    client_secret: clientSecret,
-    token_endpoint_auth_method: 'client_secret_basic',
-  });
+  const oauthClient = await createWorkerClient({ clientId, clientSecret, tokenAuthMethod });
 
   const params = {
     grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
@@ -78,11 +111,7 @@ export async function exchangeToken({
 }
 
 export async function deviceAuthorization({ clientId, scope }) {
-  const issuer = await getIssuer();
-  const oauthClient = new issuer.Client({
-    client_id: clientId,
-    token_endpoint_auth_method: 'none',
-  });
+  const oauthClient = await createWorkerClient({ clientId, tokenAuthMethod: 'none' });
   return oauthClient.deviceAuthorization({ scope });
 }
 
@@ -97,12 +126,12 @@ export async function initiateCiba({
   bindingMessage,
   requestedExpiry = 300,
   acrValues,
+  tokenAuthMethod = 'client_secret_post',
 }) {
-  const issuer = await getIssuer();
-  const oauthClient = new issuer.Client({
-    client_id: clientId,
-    client_secret: clientSecret,
-    token_endpoint_auth_method: 'client_secret_post',
+  const oauthClient = await createWorkerClient({
+    clientId,
+    clientSecret,
+    tokenAuthMethod: tokenAuthMethod || 'client_secret_post',
   });
 
   const params = {
@@ -131,6 +160,11 @@ export function buildAuthorizationUrl(oauthClient, params) {
   return oauthClient.authorizationUrl(params);
 }
 
+export async function buildSignedAuthorizationUrl(oauthClient, params, clientId) {
+  const requestJwt = await signRequestObject(params, clientId);
+  return oauthClient.authorizationUrl({ request: requestJwt, client_id: clientId });
+}
+
 export function authorizationCodeGrant(oauthClient, req, checks = {}) {
   const params = oauthClient.callbackParams(req);
   return oauthClient.callback(oauthClient.redirect_uris[0], params, checks);
@@ -141,7 +175,9 @@ export function refreshTokenGrant(oauthClient, refreshToken) {
 }
 
 export function generatePkce() {
-  return client.generators.pkce();
+  const code_verifier = client.generators.codeVerifier();
+  const code_challenge = client.generators.codeChallenge(code_verifier);
+  return { code_verifier, code_challenge };
 }
 
 export function generateState() {
@@ -151,3 +187,5 @@ export function generateState() {
 export function generateNonce() {
   return client.generators.nonce();
 }
+
+export { signRequestObject };

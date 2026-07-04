@@ -15,7 +15,8 @@ router.get('/', (req, res) => {
   res.render('ciba-lab', {
     lab,
     configured,
-    configError: missingConfigMessage('CIBA', config.clientId),
+    configError: missingConfigMessage('ciba', config.clientId, config.tokenAuthMethod),
+    tokenAuthMethod: config.tokenAuthMethod,
     authRequest: ciba?.authRequest || null,
     tokens: ciba?.tokens ? summarizeTokens(ciba.tokens) : null,
     status: ciba?.status || null,

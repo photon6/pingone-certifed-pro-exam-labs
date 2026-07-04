@@ -24,8 +24,9 @@ router.get('/', (req, res) => {
   res.render('token-exchange-lab', {
     lab,
     configured,
-    configError: missingConfigMessage('TOKEN_EXCHANGE', config.clientId),
+    configError: missingConfigMessage('token-exchange', config.clientId, config.tokenAuthMethod),
     redirectUri: webConfig.redirectUri,
+    tokenAuthMethod: config.tokenAuthMethod,
     exchangeResult: req.session.tokenExchange?.result || null,
     subjectTokenPreview: req.session.tokenExchange?.subjectPreview || null,
     hideTryIt: true,
@@ -78,6 +79,7 @@ router.post('/exchange-user-token', asyncHandler(async (req, res) => {
     subjectToken,
     audience,
     scope,
+    tokenAuthMethod: config.tokenAuthMethod,
   });
 
   req.session.tokenExchange.result = {
@@ -96,6 +98,7 @@ router.post('/exchange-m2m-token', asyncHandler(async (req, res) => {
     clientId: config.clientId,
     clientSecret: config.clientSecret,
     scope: req.body.scope || 'openid',
+    tokenAuthMethod: config.tokenAuthMethod,
   });
 
   const result = await exchangeToken({
@@ -103,6 +106,7 @@ router.post('/exchange-m2m-token', asyncHandler(async (req, res) => {
     clientSecret: config.clientSecret,
     subjectToken: m2mToken.access_token,
     audience: req.body.audience || targetConfig.clientId || undefined,
+    tokenAuthMethod: config.tokenAuthMethod,
   });
 
   req.session.tokenExchange = req.session.tokenExchange || {};

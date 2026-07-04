@@ -11,8 +11,8 @@
   <main class="container">
     <h1><%= title %></h1>
     <div class="alert error"><%= message %></div>
-    <% if (details) { %><pre class="error-details"><%= details %></pre><% } %>
-    <a href="/" class="btn">Back to Dashboard</a>
+    <% if (details) { %><p class="hint"><%= details %></p><% } %>
+    <a href="<%= typeof backUrl !== 'undefined' ? backUrl : '/' %>" class="btn"><%= typeof backLabel !== 'undefined' ? backLabel : 'Back to Dashboard' %></a>
   </main>
   <%- include('partials/footer') %>
 </body>

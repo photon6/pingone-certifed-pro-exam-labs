@@ -55,8 +55,21 @@ Open [http://localhost:3000](http://localhost:3000) for the study dashboard. Sel
 | `CIBA_CLIENT_ID` / `SECRET` | CIBA lab |
 | `TOKEN_EXCHANGE_CLIENT_ID` / `SECRET` | Token exchange lab |
 | `ENHANCED_SECURITY_CLIENT_ID` / `SECRET` | Enhanced security lab |
+| `PINGONE_TOKEN_AUTH_METHOD` | Global default: `client_secret_basic`, `client_secret_post`, or `private_key_jwt` |
+| `WEB_AUTH_TOKEN_AUTH_METHOD` | Per-lab override (same options) |
+| JWKS | Auto-generated in `.keys/lab-jwks.json`; served at `/jwks` — see `/jwks/setup` |
 
 See `.env.example` for the full list.
+
+### JWKS (Private Key JWT & signed requests)
+
+For **Private Key JWT** token endpoint auth or **RS256/384/512 signed request objects**:
+
+1. Run `npm run generate-jwks` (or start the server — keys auto-generate on first use).
+2. In PingOne, set **JSON Web Key Set Method** to either:
+   - **JWKS URL**: `{BASE_URL}/jwks` (PingOne requires HTTPS in production; use inline JWKS locally)
+   - **JWKS**: paste the public key JSON from the lab page or `/jwks/setup`
+3. Set `PINGONE_TOKEN_AUTH_METHOD=private_key_jwt` (or per-lab, e.g. `WEB_AUTH_TOKEN_AUTH_METHOD=private_key_jwt`).
 
 ## Architecture
 

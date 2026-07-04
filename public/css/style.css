@@ -266,6 +266,10 @@ pre {
 .device-codes dl { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem; margin: 1rem 0; }
 .device-codes dt { color: var(--muted); }
 
+.jwks-meta { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem; margin: 0.75rem 0; }
+.jwks-meta dt { color: var(--muted); }
+.jwks-escaped { font-size: 0.75rem; word-break: break-all; white-space: pre-wrap; }
+
 .site-footer {
   border-top: 1px solid var(--border);
   padding: 1.5rem 0;

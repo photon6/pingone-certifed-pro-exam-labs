@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JWKS Setup — PingOne Certified Pro</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header') %>
+  <main class="container">
+    <section class="hero">
+      <h1>JWKS Setup for PingOne</h1>
+      <p>Register your application's public key with PingOne using a JWKS URL or inline JWKS JSON.</p>
+    </section>
+
+    <% if (!jwksSetup.configured) { %>
+      <div class="alert error"><%= jwksSetup.error %></div>
+    <% } else { %>
+      <section class="panel">
+        <h2>Option 1 — JWKS URL</h2>
+        <p>PingOne fetches the public key set from this endpoint (must be <code>https://</code> in production):</p>
+        <pre><%= jwksSetup.jwksUrl %></pre>
+        <% if (jwksSetup.httpsRequiredForUrl) { %>
+          <p class="hint">Running on HTTP locally? Use inline JWKS in PingOne or tunnel this app with HTTPS.</p>
+        <% } %>
+      </section>
+
+      <section class="panel">
+        <h2>Option 2 — JWKS (inline)</h2>
+        <p>Copy into PingOne admin → Application → JSON Web Key Set Method → <strong>JWKS</strong>:</p>
+        <pre><%= jwksSetup.jwksInlinePretty %></pre>
+        <p class="hint">Single-line escaped form (for PingOne API):</p>
+        <pre class="jwks-escaped"><%= jwksSetup.jwksInlineEscaped %></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Key details</h2>
+        <dl class="jwks-meta">
+          <dt>kid</dt><dd><code><%= jwksSetup.kid %></code></dd>
+          <dt>Algorithm</dt><dd><code><%= jwksSetup.signingAlg %></code></dd>
+          <dt>Key file</dt><dd><code><%= jwksSetup.keySource %></code></dd>
+        </dl>
+        <ul class="setup-steps">
+          <% jwksSetup.pingoneNotes.forEach(function(note) { %>
+            <li><%= note %></li>
+          <% }); %>
+        </ul>
+      </section>
+    <% } %>
+
+    <a href="/labs" class="btn">Back to Labs</a>
+  </main>
+  <%- include('partials/footer') %>
+</body>
+</html>

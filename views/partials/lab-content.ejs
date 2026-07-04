@@ -23,15 +23,41 @@
     <% } else { %>
       <li>No redirect URI required for this grant type.</li>
     <% } %>
-    <li>Copy Client ID (and Secret if confidential) into your <code>.env</code> file.</li>
+    <li>Copy Client ID<% if (typeof tokenAuthMethod !== 'undefined' && tokenAuthMethod === 'private_key_jwt') { %> and configure JWKS below<% } else { %> (and Secret if not using Private Key JWT)<% } %> into your <code>.env</code> file.</li>
+    <% if (typeof tokenAuthMethod !== 'undefined' && tokenAuthMethod === 'private_key_jwt') { %>
+      <li>Set PingOne Token Endpoint Authentication Method to <strong>Private Key JWT</strong>.</li>
+    <% } %>
     <li>Enable required grant type: <strong><%= lab.grant %></strong></li>
   </ol>
+  <%- include('jwks-setup') %>
   <div class="exam-topics">
     <strong>Exam topics:</strong>
     <% lab.examTopics.forEach(function(topic) { %>
       <span class="topic-tag"><%= topic %></span>
     <% }); %>
   </div>
+  <% if (typeof appVerification !== 'undefined' && appVerification) { %>
+    <% if (appVerification.ok) { %>
+      <div class="alert info" style="margin-top: 0.75rem;">
+        PingOne recognizes this client ID and redirect URI.
+      </div>
+    <% } else { %>
+      <div class="alert error" style="margin-top: 0.75rem;">
+        <strong>PingOne check failed (<%= appVerification.code %>):</strong>
+        <%= appVerification.message %>
+        <% if (typeof notFoundChecklist !== 'undefined' && appVerification.code === 'NOT_FOUND') { %>
+          <ul class="setup-steps" style="margin-top: 0.5rem;">
+            <% notFoundChecklist.forEach(function(item) { %>
+              <li><%= item %></li>
+            <% }); %>
+          </ul>
+        <% } %>
+      </div>
+    <% } %>
+  <% } %>
+  <% if (typeof clientId !== 'undefined' && clientId) { %>
+    <p class="hint">Configured client ID: <code><%= clientId %></code></p>
+  <% } %>
 </section>
 
 <section class="panel">
@@ -60,6 +86,10 @@
   <% } else if (configured) { %>
     <p><%= typeof pkceNote !== 'undefined' ? pkceNote : '' %></p>
     <% if (typeof scopeNote !== 'undefined') { %><p class="hint"><%= scopeNote %></p><% } %>
-    <a class="btn" href="<%= lab.path %>/login">Sign in with PingOne</a>
+    <% if (typeof appVerification !== 'undefined' && appVerification && !appVerification.ok) { %>
+      <p class="hint">Fix the PingOne setup issues above before signing in.</p>
+    <% } else { %>
+      <a class="btn" href="<%= lab.path %>/login">Sign in with PingOne</a>
+    <% } %>
   <% } %>
 </section>

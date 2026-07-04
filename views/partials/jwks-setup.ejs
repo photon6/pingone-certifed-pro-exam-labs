@@ -1,0 +1,38 @@
+<% if (typeof jwksSetup !== 'undefined' && jwksSetup && (lab.clientType === 'Confidential' || typeof showJwksSetup !== 'undefined')) { %>
+<section class="panel">
+  <h2>JWKS — Private Key JWT &amp; Signed Requests</h2>
+  <p>
+    Required when Token Endpoint Authentication Method is <strong>Private Key JWT</strong>,
+    or when sending RS256/RS384/RS512-signed <code>request</code> objects to PingOne.
+  </p>
+
+  <% if (typeof tokenAuthMethod !== 'undefined') { %>
+    <p class="hint">This lab token auth: <code><%= tokenAuthMethod %></code></p>
+  <% } %>
+
+  <% if (!jwksSetup.configured) { %>
+    <div class="alert warn"><%= jwksSetup.error || 'JWKS keys are not configured.' %></div>
+  <% } else { %>
+    <h3>Option 1 — JWKS URL</h3>
+    <p>Paste this URL into PingOne → Application → JSON Web Key Set Method → <strong>JWKS URL</strong>:</p>
+    <pre><%= jwksSetup.jwksUrl %></pre>
+    <% if (jwksSetup.httpsRequiredForUrl) { %>
+      <p class="hint">PingOne requires an <code>https://</code> JWKS URL in production. For local labs, use Option 2 (inline JWKS) or expose this endpoint via a tunnel (ngrok, etc.).</p>
+    <% } %>
+
+    <h3>Option 2 — JWKS (inline)</h3>
+    <p>Paste into PingOne → Application → JSON Web Key Set Method → <strong>JWKS</strong>:</p>
+    <pre><%= jwksSetup.jwksInlinePretty %></pre>
+
+    <dl class="jwks-meta">
+      <dt>Key ID (kid)</dt><dd><code><%= jwksSetup.kid %></code></dd>
+      <dt>Signing algorithm</dt><dd><code><%= jwksSetup.signingAlg %></code></dd>
+      <dt>Supported algs</dt><dd><code><%= jwksSetup.supportedAlgs.join(', ') %></code></dd>
+      <dt>Key source</dt><dd><code><%= jwksSetup.keySource %></code></dd>
+    </dl>
+
+    <p><a href="/jwks" target="_blank" class="btn secondary">View live JWKS JSON</a>
+       <a href="/jwks/setup" class="btn secondary">JWKS setup page</a></p>
+  <% } %>
+</section>
+<% } %>
