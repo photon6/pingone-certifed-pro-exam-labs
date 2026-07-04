@@ -5,7 +5,7 @@ let jwks;
 
 function getJwks() {
   if (!jwks && pingoneConfig.issuer) {
-    jwks = createRemoteJWKSet(new URL(`${pingoneConfig.issuer}/as/jwks`));
+    jwks = createRemoteJWKSet(new URL(`${pingoneConfig.issuer}/jwks`));
   }
   return jwks;
 }

@@ -49,7 +49,7 @@ router.get('/login', asyncHandler(async (req, res) => {
 router.get('/callback', asyncHandler(async (req, res) => {
   const oauthClient = await createConfidentialClient(webConfig);
   const { state, nonce } = req.session.tokenExchangeOauth || {};
-  const tokenSet = await authorizationCodeGrant(oauthClient, req.originalUrl, { state, nonce });
+  const tokenSet = await authorizationCodeGrant(oauthClient, req, { state, nonce });
 
   req.session.tokenExchange = {
     subjectToken: tokenSet.access_token,

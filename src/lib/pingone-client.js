@@ -8,7 +8,13 @@ export function getIssuer() {
     throw new Error('PingOne is not configured. Set PINGONE_ENVIRONMENT_ID in .env');
   }
   if (!issuerPromise) {
-    issuerPromise = client.Issuer.discover(pingoneConfig.issuer);
+    issuerPromise = client.Issuer.discover(pingoneConfig.issuer).catch((err) => {
+      issuerPromise = null;
+      const hint = err.message?.includes('403')
+        ? ` Check PINGONE_ENVIRONMENT_ID (${pingoneConfig.environmentId}) and PINGONE_REGION (${pingoneConfig.region}).`
+        : '';
+      throw new Error(`PingOne OIDC discovery failed at ${pingoneConfig.issuer}: ${err.message}.${hint}`);
+    });
   }
   return issuerPromise;
 }
@@ -125,8 +131,9 @@ export function buildAuthorizationUrl(oauthClient, params) {
   return oauthClient.authorizationUrl(params);
 }
 
-export function authorizationCodeGrant(oauthClient, callbackUrl, checks = {}) {
-  return oauthClient.callback(oauthClient.redirect_uris[0], callbackUrl, checks);
+export function authorizationCodeGrant(oauthClient, req, checks = {}) {
+  const params = oauthClient.callbackParams(req);
+  return oauthClient.callback(oauthClient.redirect_uris[0], params, checks);
 }
 
 export function refreshTokenGrant(oauthClient, refreshToken) {

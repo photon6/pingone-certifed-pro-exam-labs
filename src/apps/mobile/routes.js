@@ -49,7 +49,7 @@ router.get('/login', asyncHandler(async (req, res) => {
 router.get('/callback', asyncHandler(async (req, res) => {
   const oauthClient = await createPublicClient(config);
   const { state, nonce, code_verifier } = req.session.mobileOauth || {};
-  const tokenSet = await authorizationCodeGrant(oauthClient, req.originalUrl, {
+  const tokenSet = await authorizationCodeGrant(oauthClient, req, {
     state,
     nonce,
     code_verifier,

@@ -48,7 +48,7 @@ router.get('/login', asyncHandler(async (req, res) => {
 router.get('/callback', asyncHandler(async (req, res) => {
   const oauthClient = await createConfidentialClient(config);
   const { state, nonce } = req.session.longSessionOauth || {};
-  const tokenSet = await authorizationCodeGrant(oauthClient, req.originalUrl, { state, nonce });
+  const tokenSet = await authorizationCodeGrant(oauthClient, req, { state, nonce });
   const userinfo = await oauthClient.userinfo(tokenSet.access_token);
 
   req.session.longSession = {

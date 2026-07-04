@@ -80,7 +80,7 @@ async function startAuth(req, res, { usePar, acrValues }) {
 router.get('/callback', asyncHandler(async (req, res) => {
   const oauthClient = await createConfidentialClient(config);
   const { state, nonce, code_verifier, authMethod } = req.session.enhancedSecurityOauth || {};
-  const tokenSet = await authorizationCodeGrant(oauthClient, req.originalUrl, {
+  const tokenSet = await authorizationCodeGrant(oauthClient, req, {
     state,
     nonce,
     code_verifier,

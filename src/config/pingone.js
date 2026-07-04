@@ -18,7 +18,7 @@ export const pingoneConfig = {
   environmentId,
   region,
   authHost,
-  issuer: environmentId ? `https://${authHost}/${environmentId}` : null,
+  issuer: environmentId ? `https://${authHost}/${environmentId}/as` : null,
   baseUrl,
   sessionSecret: process.env.SESSION_SECRET || 'dev-only-session-secret',
   port: Number(process.env.PORT) || 3000,

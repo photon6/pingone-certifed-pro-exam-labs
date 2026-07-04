@@ -10,6 +10,6 @@ export function errorHandler(err, req, res, next) {
   res.status(status).render('error', {
     title: 'Error',
     message: err.message || 'An unexpected error occurred',
-    details: process.env.NODE_ENV === 'development' ? err.stack : null,
+    details: process.env.NODE_ENV !== 'production' ? err.stack : null,
   });
 }

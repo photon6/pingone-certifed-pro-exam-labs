@@ -7,6 +7,7 @@ const router = Router();
 const pingoneViewConfig = {
   environmentId: pingoneConfig.environmentId,
   region: pingoneConfig.region,
+  authHost: pingoneConfig.authHost,
   issuer: pingoneConfig.issuer,
   baseUrl: pingoneConfig.baseUrl,
 };
