@@ -1,3 +1,5 @@
+import { summarizeTokenSet } from '/js/jwt-display.js';
+
 function base64UrlEncode(buffer) {
   const bytes = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : buffer;
   let str = btoa(String.fromCharCode(...bytes));
@@ -53,7 +55,7 @@ async function startLogin() {
   const codeVerifier = randomString(48);
   const codeChallenge = await sha256(codeVerifier);
 
-  sessionStorage.setItem(PKCE_KEY, JSON.stringify({ state, nonce, codeVerifier }));
+  sessionStorage.setItem(PKCE_KEY, JSON.stringify({ state, nonce, code_verifier: codeVerifier }));
 
   const params = new URLSearchParams({
     response_type: 'code',
@@ -113,7 +115,8 @@ async function handleCallback() {
   const tokens = await tokenRes.json();
   sessionStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
   sessionStorage.removeItem(PKCE_KEY);
-  window.history.replaceState({}, '', window.location.pathname);
+  const cleanPath = window.location.pathname.replace(/\/callback\/?$/, '') || '/labs/spa';
+  window.history.replaceState({}, '', cleanPath);
 
   renderLoggedIn(tokens);
   return true;
@@ -135,12 +138,7 @@ async function renderLoggedIn(tokens) {
   }
 
   showOutput({
-    token_summary: {
-      token_type: tokens.token_type,
-      expires_in: tokens.expires_in,
-      scope: tokens.scope,
-      has_id_token: Boolean(tokens.id_token),
-    },
+    ...summarizeTokenSet(tokens),
     userinfo,
   });
 }

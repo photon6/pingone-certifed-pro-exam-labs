@@ -7,7 +7,7 @@ const lab = getLab('spa');
 
 const router = Router();
 
-router.get('/', (req, res) => {
+function renderSpaLab(req, res) {
   const configured = isConfigured(config.clientId);
   res.render('spa-lab', {
     lab,
@@ -20,6 +20,9 @@ router.get('/', (req, res) => {
     environmentId: pingoneConfig.environmentId,
     hideTryIt: true,
   });
-});
+}
+
+router.get('/', renderSpaLab);
+router.get('/callback', renderSpaLab);
 
 export default router;

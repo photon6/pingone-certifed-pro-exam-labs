@@ -17,8 +17,9 @@
         <div class="actions">
           <a class="btn" href="/labs/token-exchange/login">1. Get user access token (Auth Code)</a>
         </div>
-        <% if (subjectTokenPreview) { %>
-          <p>Subject token: <code><%= subjectTokenPreview %></code></p>
+        <% if (subjectTokenJwt) { %>
+          <h3>Subject token</h3>
+          <pre><%= JSON.stringify(subjectTokenJwt, null, 2) %></pre>
           <form method="post" action="/labs/token-exchange/exchange-user-token" class="stacked-form">
             <label>Audience (target client ID, optional)
               <input type="text" name="audience" placeholder="TOKEN_EXCHANGE_TARGET_CLIENT_ID">

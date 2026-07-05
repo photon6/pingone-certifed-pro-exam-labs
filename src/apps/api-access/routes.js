@@ -30,6 +30,7 @@ router.get('/api/public', (req, res) => {
 router.get('/api/protected', validateBearerToken, (req, res) => {
   res.json({
     message: 'Access granted — valid PingOne access token.',
+    jwt_header: req.jwtHeader,
     claims: req.tokenPayload,
     timestamp: new Date().toISOString(),
   });
@@ -47,6 +48,7 @@ router.get('/api/scoped', validateBearerToken, (req, res) => {
   res.json({
     message: 'Scoped access granted.',
     data: { labs: ['web-auth', 'mobile', 'spa', 'm2m'] },
+    jwt_header: req.jwtHeader,
     claims: req.tokenPayload,
   });
 });

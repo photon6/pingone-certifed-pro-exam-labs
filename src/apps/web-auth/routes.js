@@ -9,6 +9,7 @@ import {
   generateNonce,
 } from '../../lib/pingone-client.js';
 import { verifyOAuthApplication, notFoundChecklist } from '../../lib/pingone-verify.js';
+import { summarizeTokenSet } from '../../lib/jwt-display.js';
 import { getLab } from '../../lib/lab-meta.js';
 
 const config = appConfig('WEB_AUTH', { path: '/labs/web-auth' });
@@ -37,7 +38,7 @@ router.get('/', asyncHandler(async (req, res) => {
     appVerification,
     notFoundChecklist,
     user: req.session.webAuth?.userinfo || null,
-    tokens: req.session.webAuth?.tokens ? summarizeTokens(req.session.webAuth.tokens) : null,
+    tokens: req.session.webAuth?.tokens ? summarizeTokenSet(req.session.webAuth.tokens) : null,
   });
 }));
 
@@ -88,16 +89,5 @@ router.post('/logout', (req, res) => {
   delete req.session.webAuthOauth;
   res.redirect('/labs/web-auth');
 });
-
-function summarizeTokens(tokens) {
-  return {
-    token_type: tokens.token_type,
-    expires_in: tokens.expires_in,
-    scope: tokens.scope,
-    has_id_token: Boolean(tokens.id_token),
-    has_access_token: Boolean(tokens.access_token),
-    has_refresh_token: Boolean(tokens.refresh_token),
-  };
-}
 
 export default router;

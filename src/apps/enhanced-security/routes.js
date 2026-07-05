@@ -12,6 +12,7 @@ import {
   generateNonce,
 } from '../../lib/pingone-client.js';
 import { getLab } from '../../lib/lab-meta.js';
+import { summarizeTokenSet } from '../../lib/jwt-display.js';
 
 const config = appConfig('ENHANCED_SECURITY', { path: '/labs/enhanced-security' });
 const lab = getLab('enhanced-security');
@@ -27,7 +28,7 @@ router.get('/', (req, res) => {
     redirectUri: config.redirectUri,
     tokenAuthMethod: config.tokenAuthMethod,
     user: req.session.enhancedSecurity?.userinfo || null,
-    tokens: req.session.enhancedSecurity?.tokens ? summarizeTokens(req.session.enhancedSecurity.tokens) : null,
+    tokens: req.session.enhancedSecurity?.tokens ? summarizeTokenSet(req.session.enhancedSecurity.tokens) : null,
     authMethod: req.session.enhancedSecurity?.authMethod || null,
     hideTryIt: true,
   });
@@ -118,15 +119,5 @@ router.post('/logout', (req, res) => {
   delete req.session.enhancedSecurityOauth;
   res.redirect('/labs/enhanced-security');
 });
-
-function summarizeTokens(tokens) {
-  return {
-    token_type: tokens.token_type,
-    expires_in: tokens.expires_in,
-    scope: tokens.scope,
-    has_id_token: Boolean(tokens.id_token),
-    has_access_token: Boolean(tokens.access_token),
-  };
-}
 
 export default router;

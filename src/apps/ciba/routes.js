@@ -3,6 +3,7 @@ import { appConfig, isConfigured, missingConfigMessage } from '../../config/ping
 import { asyncHandler } from '../../middleware/error-handler.js';
 import { initiateCiba, pollCibaToken, createConfidentialClient } from '../../lib/pingone-client.js';
 import { getLab } from '../../lib/lab-meta.js';
+import { summarizeTokenSet } from '../../lib/jwt-display.js';
 
 const config = appConfig('CIBA');
 const lab = getLab('ciba');
@@ -18,7 +19,7 @@ router.get('/', (req, res) => {
     configError: missingConfigMessage('ciba', config.clientId, config.tokenAuthMethod),
     tokenAuthMethod: config.tokenAuthMethod,
     authRequest: ciba?.authRequest || null,
-    tokens: ciba?.tokens ? summarizeTokens(ciba.tokens) : null,
+    tokens: ciba?.tokens ? summarizeTokenSet(ciba.tokens) : null,
     status: ciba?.status || null,
     error: ciba?.error || null,
     hideTryIt: true,
@@ -86,15 +87,5 @@ router.post('/clear', (req, res) => {
   delete req.session.ciba;
   res.redirect('/labs/ciba');
 });
-
-function summarizeTokens(tokens) {
-  return {
-    token_type: tokens.token_type,
-    expires_in: tokens.expires_in,
-    scope: tokens.scope,
-    has_access_token: Boolean(tokens.access_token),
-    has_id_token: Boolean(tokens.id_token),
-  };
-}
 
 export default router;

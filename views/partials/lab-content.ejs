@@ -69,7 +69,7 @@
       <h3>Signed in</h3>
       <pre><%= JSON.stringify(user, null, 2) %></pre>
       <% if (tokens) { %>
-        <h4>Token summary</h4>
+        <h4>Token summary (JWT headers decoded)</h4>
         <pre><%= JSON.stringify(tokens, null, 2) %></pre>
       <% } %>
       <% if (typeof refreshHistory !== 'undefined' && refreshHistory.length) { %>

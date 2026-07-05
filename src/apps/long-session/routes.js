@@ -10,6 +10,7 @@ import {
   generateNonce,
 } from '../../lib/pingone-client.js';
 import { getLab } from '../../lib/lab-meta.js';
+import { summarizeTokenSet } from '../../lib/jwt-display.js';
 
 const config = appConfig('LONG_SESSION', { path: '/labs/long-session' });
 const lab = getLab('long-session');
@@ -26,7 +27,7 @@ router.get('/', (req, res) => {
     redirectUri: config.redirectUri,
     tokenAuthMethod: config.tokenAuthMethod,
     user: session?.userinfo || null,
-    tokens: session?.tokens ? summarizeTokens(session.tokens) : null,
+    tokens: session?.tokens ? summarizeTokenSet(session.tokens) : null,
     refreshHistory: session?.refreshHistory || [],
     scopeNote: 'Request openid profile offline_access to receive refresh tokens.',
   });
@@ -84,17 +85,5 @@ router.post('/logout', (req, res) => {
   delete req.session.longSessionOauth;
   res.redirect('/labs/long-session');
 });
-
-function summarizeTokens(tokens) {
-  return {
-    token_type: tokens.token_type,
-    expires_in: tokens.expires_in,
-    scope: tokens.scope,
-    has_id_token: Boolean(tokens.id_token),
-    has_access_token: Boolean(tokens.access_token),
-    has_refresh_token: Boolean(tokens.refresh_token),
-    expires_at: tokens.expires_at ? new Date(tokens.expires_at * 1000).toISOString() : null,
-  };
-}
 
 export default router;

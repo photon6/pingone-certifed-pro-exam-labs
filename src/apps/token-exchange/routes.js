@@ -11,6 +11,7 @@ import {
   generateNonce,
 } from '../../lib/pingone-client.js';
 import { getLab } from '../../lib/lab-meta.js';
+import { summarizeAccessToken } from '../../lib/jwt-display.js';
 
 const config = appConfig('TOKEN_EXCHANGE');
 const targetConfig = appConfig('TOKEN_EXCHANGE_TARGET');
@@ -28,7 +29,7 @@ router.get('/', (req, res) => {
     redirectUri: webConfig.redirectUri,
     tokenAuthMethod: config.tokenAuthMethod,
     exchangeResult: req.session.tokenExchange?.result || null,
-    subjectTokenPreview: req.session.tokenExchange?.subjectPreview || null,
+    subjectTokenJwt: req.session.tokenExchange?.subjectTokenJwt || null,
     hideTryIt: true,
   });
 });
@@ -54,7 +55,7 @@ router.get('/callback', asyncHandler(async (req, res) => {
 
   req.session.tokenExchange = {
     subjectToken: tokenSet.access_token,
-    subjectPreview: `${tokenSet.access_token?.slice(0, 24)}...`,
+    subjectTokenJwt: summarizeAccessToken(tokenSet.access_token),
   };
   delete req.session.tokenExchangeOauth;
   res.redirect('/labs/token-exchange');
@@ -87,7 +88,7 @@ router.post('/exchange-user-token', asyncHandler(async (req, res) => {
     expires_in: result.expires_in,
     scope: result.scope,
     issued_token_type: result.issued_token_type,
-    access_token_preview: `${result.access_token?.slice(0, 24)}...`,
+    access_token: summarizeAccessToken(result.access_token),
     exchanged_at: new Date().toISOString(),
   };
   res.redirect('/labs/token-exchange');
@@ -115,7 +116,7 @@ router.post('/exchange-m2m-token', asyncHandler(async (req, res) => {
     expires_in: result.expires_in,
     scope: result.scope,
     issued_token_type: result.issued_token_type,
-    access_token_preview: `${result.access_token?.slice(0, 24)}...`,
+    access_token: summarizeAccessToken(result.access_token),
     exchanged_at: new Date().toISOString(),
     source: 'client_credentials',
   };

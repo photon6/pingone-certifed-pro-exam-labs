@@ -3,6 +3,7 @@ import { appConfig, isConfigured, missingConfigMessage } from '../../config/ping
 import { asyncHandler } from '../../middleware/error-handler.js';
 import { deviceAuthorization, pollDeviceToken, createPublicClient } from '../../lib/pingone-client.js';
 import { getLab } from '../../lib/lab-meta.js';
+import { summarizeTokenSet } from '../../lib/jwt-display.js';
 
 const config = appConfig('DEVICE_FLOW');
 const lab = getLab('device-flow');
@@ -17,7 +18,7 @@ router.get('/', (req, res) => {
     configured,
     configError: missingConfigMessage('DEVICE_FLOW', config.clientId),
     device: device?.authorization || null,
-    tokens: device?.tokens ? summarizeTokens(device.tokens) : null,
+    tokens: device?.tokens ? summarizeTokenSet(device.tokens) : null,
     status: device?.status || null,
     error: device?.error || null,
     hideTryIt: true,
@@ -73,15 +74,5 @@ router.post('/clear', (req, res) => {
   delete req.session.deviceFlow;
   res.redirect('/labs/device-flow');
 });
-
-function summarizeTokens(tokens) {
-  return {
-    token_type: tokens.token_type,
-    expires_in: tokens.expires_in,
-    scope: tokens.scope,
-    has_access_token: Boolean(tokens.access_token),
-    has_id_token: Boolean(tokens.id_token),
-  };
-}
 
 export default router;

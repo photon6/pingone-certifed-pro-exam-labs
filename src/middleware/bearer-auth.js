@@ -1,4 +1,4 @@
-import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { createRemoteJWKSet, decodeProtectedHeader, jwtVerify } from 'jose';
 import { pingoneConfig } from '../config/pingone.js';
 
 let jwks;
@@ -18,9 +18,11 @@ export async function validateBearerToken(req, res, next) {
 
   const token = header.slice(7);
   try {
+    const jwtHeader = decodeProtectedHeader(token);
     const { payload } = await jwtVerify(token, getJwks(), {
       issuer: pingoneConfig.issuer,
     });
+    req.jwtHeader = jwtHeader;
     req.tokenPayload = payload;
     next();
   } catch (err) {

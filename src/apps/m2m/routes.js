@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { appConfig, isConfigured, missingConfigMessage } from '../../config/pingone.js';
 import { asyncHandler } from '../../middleware/error-handler.js';
 import { clientCredentialsToken } from '../../lib/pingone-client.js';
+import { summarizeAccessToken } from '../../lib/jwt-display.js';
 import { getLab } from '../../lib/lab-meta.js';
 
 const config = appConfig('M2M');
@@ -35,7 +36,7 @@ router.post('/token', asyncHandler(async (req, res) => {
       token_type: tokenSet.token_type,
       expires_in: tokenSet.expires_in,
       scope: tokenSet.scope,
-      access_token_preview: `${tokenSet.access_token?.slice(0, 20)}...`,
+      access_token: summarizeAccessToken(tokenSet.access_token),
       issued_at: new Date().toISOString(),
     },
     rawToken: tokenSet.access_token,

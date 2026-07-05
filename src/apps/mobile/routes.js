@@ -10,6 +10,7 @@ import {
   generateNonce,
 } from '../../lib/pingone-client.js';
 import { getLab } from '../../lib/lab-meta.js';
+import { summarizeTokenSet } from '../../lib/jwt-display.js';
 
 const config = appConfig('MOBILE', { path: '/labs/mobile' });
 const lab = getLab('mobile');
@@ -24,7 +25,7 @@ router.get('/', (req, res) => {
     configError: missingConfigMessage('MOBILE', config.clientId),
     redirectUri: config.redirectUri,
     user: req.session.mobile?.userinfo || null,
-    tokens: req.session.mobile?.tokens ? summarizeTokens(req.session.mobile.tokens) : null,
+    tokens: req.session.mobile?.tokens ? summarizeTokenSet(req.session.mobile.tokens) : null,
     pkceNote: 'Native apps use PKCE and no client secret. Configure redirect URI as shown below.',
   });
 });
@@ -66,15 +67,5 @@ router.post('/logout', (req, res) => {
   delete req.session.mobileOauth;
   res.redirect('/labs/mobile');
 });
-
-function summarizeTokens(tokens) {
-  return {
-    token_type: tokens.token_type,
-    expires_in: tokens.expires_in,
-    scope: tokens.scope,
-    has_id_token: Boolean(tokens.id_token),
-    has_access_token: Boolean(tokens.access_token),
-  };
-}
 
 export default router;
