@@ -49,3 +49,9 @@ export function summarizeTokenSet(tokens) {
 
   return summary;
 }
+
+export function summarizeAccessToken(accessToken) {
+  if (!accessToken) return null;
+  const decoded = decodeJwtParts(accessToken);
+  return decoded || { format: 'opaque' };
+}
