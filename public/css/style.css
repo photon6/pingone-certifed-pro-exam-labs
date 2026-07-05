@@ -255,6 +255,72 @@ pre {
 .api-table th, .api-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--border); }
 .api-table code { font-family: var(--mono); font-size: 0.8rem; }
 
+.token-methods { display: grid; gap: 1rem; margin: 1rem 0; }
+.token-method {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.token-method h3 { font-size: 0.95rem; margin-bottom: 0.35rem; }
+.token-method label { display: block; margin: 0.5rem 0; font-size: 0.9rem; }
+.token-method input,
+.token-method textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+.token-method .btn { margin-top: 0.5rem; }
+
+.token-method.recommended {
+  border-color: rgba(0, 180, 160, 0.45);
+}
+.token-method-later {
+  opacity: 0.9;
+}
+.token-method-later summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.token-method-later[open] summary { color: var(--text); margin-bottom: 0.75rem; }
+
+.api-call-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.api-call-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+.api-call-header h3 { font-size: 0.95rem; margin-bottom: 0.25rem; }
+.api-call-header p { color: var(--muted); font-size: 0.88rem; }
+.curl-equiv {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+  white-space: pre-wrap;
+}
+.api-response {
+  margin-top: 0.75rem;
+  border-left: 3px solid var(--accent);
+}
+
 .user-code {
   font-family: var(--mono);
   font-size: 1.5rem;

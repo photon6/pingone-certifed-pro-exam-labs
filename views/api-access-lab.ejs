@@ -14,6 +14,7 @@
       <div class="lab-badges">
         <span class="badge"><%= lab.pingoneType %></span>
         <span class="badge secondary"><%= lab.grant %></span>
+        <span class="badge secondary"><%= lab.clientType %></span>
       </div>
       <p class="lab-desc"><%= lab.description %></p>
     </header>
@@ -23,31 +24,129 @@
     <% } %>
 
     <section class="panel">
-      <h2>API Endpoints</h2>
-      <table class="api-table">
-        <thead><tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>GET /labs/api-access/api/public</code></td>
-            <td>None</td>
-            <td>Public health-style endpoint</td>
-          </tr>
-          <tr>
-            <td><code>GET /labs/api-access/api/protected</code></td>
-            <td>Bearer JWT</td>
-            <td>Validates PingOne access token signature &amp; issuer</td>
-          </tr>
-          <tr>
-            <td><code>GET /labs/api-access/api/scoped</code></td>
-            <td>Bearer + scope</td>
-            <td>Requires <code>read:labs</code> scope in token</td>
-          </tr>
-        </tbody>
-      </table>
-      <p class="hint">Obtain an access token from another lab (e.g. Web Auth or M2M), then test with curl:</p>
-      <pre>curl -H "Authorization: Bearer &lt;access_token&gt;" <%= typeof baseUrl !== 'undefined' ? baseUrl : '' %>/labs/api-access/api/protected</pre>
+      <h2>PingOne Setup</h2>
+      <ol class="setup-steps">
+        <li>This lab is a <strong>resource server</strong> — it validates PingOne-issued JWT access tokens.</li>
+        <li>Reuse your <strong>Web Auth</strong> PingOne app (<code>WEB_AUTH_CLIENT_ID</code>) to obtain a user access token — no M2M app needed yet.</li>
+        <li>Add a second redirect URI to that Web Auth app: <code><%= loginRedirectUri %></code></li>
+        <li>For the scoped endpoint, add custom scope <code>read:labs</code> in PingOne and request it when signing in.</li>
+      </ol>
+      <div class="exam-topics">
+        <% lab.examTopics.forEach(function(topic) { %>
+          <span class="topic-tag"><%= topic %></span>
+        <% }); %>
+      </div>
+    </section>
+
+    <section class="panel" id="api-access-app"
+      data-base-url="<%= baseUrl %>"
+      data-m2m-configured="<%= m2mConfigured ? 'true' : 'false' %>"
+      data-session-token-source="<%= sessionTokenSource || '' %>"
+      data-auto-import="<%= sessionTokenSource ? 'true' : 'false' %>">
+      <h2>Step 1 — Obtain a Bearer Token</h2>
+      <p>At this point in the lab sequence you should have completed <strong>Web Auth</strong>, <strong>Mobile</strong>, and/or <strong>SPA</strong>. Use one of these methods — M2M comes later in the course.</p>
+
+      <div class="token-methods">
+        <article class="token-method recommended">
+          <h3>Option A — Sign in with PingOne (recommended)</h3>
+          <p>Uses your Web Auth app credentials to get a user access token via Authorization Code flow.</p>
+          <% if (webAuthConfigured) { %>
+            <div class="actions">
+              <a class="btn" href="/labs/api-access/login?scope=openid%20profile">Sign in (openid profile)</a>
+              <a class="btn secondary" href="/labs/api-access/login?scope=openid%20profile%20read:labs">Sign in with read:labs scope</a>
+            </div>
+            <p class="hint">Redirect URI: <code><%= loginRedirectUri %></code></p>
+          <% } else { %>
+            <p class="hint">Configure <code>WEB_AUTH_CLIENT_ID</code> and <code>WEB_AUTH_CLIENT_SECRET</code> in <code>.env</code> (from the Web Auth lab).</p>
+          <% } %>
+        </article>
+
+        <article class="token-method">
+          <h3>Option B — Import from a prior lab session</h3>
+          <p>If you already signed in via Web Auth or Mobile in this browser session:</p>
+          <% if (sessionTokenSource) { %>
+            <p class="hint">Available from: <strong><%= sessionTokenSource %></strong></p>
+            <button type="button" class="btn secondary" id="btn-session-token">Import Session Token</button>
+          <% } else { %>
+            <p class="hint">Complete the <a href="/labs/web-auth">Web Auth</a> or <a href="/labs/mobile">Mobile</a> lab first, or use Option A above.</p>
+          <% } %>
+        </article>
+
+        <article class="token-method">
+          <h3>Option C — Paste token from SPA lab</h3>
+          <p>The SPA lab stores tokens in the browser only. Copy the <code>access_token</code> from the SPA lab output:</p>
+          <label>Bearer token
+            <textarea id="bearer-token" rows="3" placeholder="Paste access_token JWT here"></textarea>
+          </label>
+          <button type="button" class="btn secondary" id="btn-save-token">Save Token</button>
+        </article>
+
+        <details class="token-method token-method-later">
+          <summary>Option D — Client Credentials (after M2M lab)</summary>
+          <p class="hint">Complete the <a href="/labs/m2m">M2M lab</a> first, then return here for machine tokens.</p>
+          <% if (m2mConfigured) { %>
+            <label>Scope
+              <input type="text" id="m2m-scope" value="openid" placeholder="openid or read:labs">
+            </label>
+            <button type="button" class="btn secondary" id="btn-get-m2m-token">Get M2M Token</button>
+          <% } else { %>
+            <p class="hint">Configure <code>M2M_CLIENT_ID</code> and <code>M2M_CLIENT_SECRET</code> after the M2M lab.</p>
+          <% } %>
+        </details>
+      </div>
+
+      <div id="token-status" class="alert info hidden"></div>
+      <div id="token-preview" class="result info hidden">
+        <h3>Current bearer token</h3>
+        <pre id="token-preview-body"></pre>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step 2 — Call API Endpoints</h2>
+      <p>Each button runs the equivalent request in your browser and shows the JSON response below.</p>
+
+      <div class="api-call-card">
+        <div class="api-call-header">
+          <div>
+            <h3>Public endpoint</h3>
+            <p>No authentication required.</p>
+          </div>
+          <button type="button" class="btn" data-api-call="public">Run GET /api/public</button>
+        </div>
+        <pre class="curl-equiv">curl <%= baseUrl %>/labs/api-access/api/public</pre>
+        <pre class="api-response hidden" id="response-public"></pre>
+      </div>
+
+      <div class="api-call-card">
+        <div class="api-call-header">
+          <div>
+            <h3>Protected endpoint</h3>
+            <p>Requires valid PingOne JWT — validates signature, issuer, and expiry.</p>
+          </div>
+          <button type="button" class="btn" data-api-call="protected">Run GET /api/protected</button>
+        </div>
+        <pre class="curl-equiv">curl -H "Authorization: Bearer &lt;access_token&gt;" \
+  <%= baseUrl %>/labs/api-access/api/protected</pre>
+        <pre class="api-response hidden" id="response-protected"></pre>
+      </div>
+
+      <div class="api-call-card">
+        <div class="api-call-header">
+          <div>
+            <h3>Scoped endpoint</h3>
+            <p>Requires bearer token with <code>read:labs</code> scope.</p>
+          </div>
+          <button type="button" class="btn" data-api-call="scoped">Run GET /api/scoped</button>
+        </div>
+        <pre class="curl-equiv">curl -H "Authorization: Bearer &lt;access_token&gt;" \
+  <%= baseUrl %>/labs/api-access/api/scoped</pre>
+        <p class="hint">Use the "Sign in with read:labs scope" button in Option A.</p>
+        <pre class="api-response hidden" id="response-scoped"></pre>
+      </div>
     </section>
   </main>
+  <script type="module" src="/js/api-access-client.js"></script>
   <%- include('partials/footer') %>
 </body>
 </html>
