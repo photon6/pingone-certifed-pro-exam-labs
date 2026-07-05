@@ -27,8 +27,8 @@
       <h2>PingOne Setup</h2>
       <ol class="setup-steps">
         <li>This lab is a <strong>resource server</strong> — it validates PingOne-issued JWT access tokens.</li>
-        <li>Reuse your <strong>Web Auth</strong> PingOne app (<code>WEB_AUTH_CLIENT_ID</code>) to obtain a user access token — no M2M app needed yet.</li>
-        <li>Add a second redirect URI to that Web Auth app: <code><%= loginRedirectUri %></code></li>
+        <li>Reuse your <strong>Web Auth</strong> PingOne app (<code>WEB_AUTH_CLIENT_ID</code>) — same redirect URI as the Web Auth lab.</li>
+        <li>Redirect URI (already configured): <code><%= webAuthRedirectUri %></code></li>
         <li>For the scoped endpoint, add custom scope <code>read:labs</code> in PingOne and request it when signing in.</li>
       </ol>
       <div class="exam-topics">
@@ -49,13 +49,13 @@
       <div class="token-methods">
         <article class="token-method recommended">
           <h3>Option A — Sign in with PingOne (recommended)</h3>
-          <p>Uses your Web Auth app credentials to get a user access token via Authorization Code flow.</p>
+          <p>Uses your Web Auth app and the same redirect URI as the Web Auth lab — no extra PingOne configuration.</p>
           <% if (webAuthConfigured) { %>
             <div class="actions">
               <a class="btn" href="/labs/api-access/login?scope=openid%20profile">Sign in (openid profile)</a>
               <a class="btn secondary" href="/labs/api-access/login?scope=openid%20profile%20read:labs">Sign in with read:labs scope</a>
             </div>
-            <p class="hint">Redirect URI: <code><%= loginRedirectUri %></code></p>
+            <p class="hint">Callback: <code><%= webAuthRedirectUri %></code></p>
           <% } else { %>
             <p class="hint">Configure <code>WEB_AUTH_CLIENT_ID</code> and <code>WEB_AUTH_CLIENT_SECRET</code> in <code>.env</code> (from the Web Auth lab).</p>
           <% } %>

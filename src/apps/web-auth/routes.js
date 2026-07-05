@@ -17,6 +17,19 @@ const lab = getLab('web-auth');
 
 const router = Router();
 
+function consumeOAuthReturn(req, tokenSet) {
+  const oauthReturn = req.session.oauthReturn;
+  if (!oauthReturn) return null;
+
+  if (oauthReturn.target === 'api-access') {
+    req.session.apiAccess = { tokens: tokenSet };
+  }
+
+  const redirectTo = oauthReturn.path || '/labs/web-auth';
+  delete req.session.oauthReturn;
+  return redirectTo;
+}
+
 router.get('/', asyncHandler(async (req, res) => {
   const configured = isConfigured(config.clientId);
   let appVerification = null;
@@ -63,10 +76,11 @@ router.get('/login', asyncHandler(async (req, res) => {
   const oauthClient = await createConfidentialClient(config);
   const state = generateState();
   const nonce = generateNonce();
-  req.session.webAuthOauth = { state, nonce };
+  const scope = req.query.scope || 'openid profile email';
+  req.session.webAuthOauth = { state, nonce, scope };
 
   const url = buildAuthorizationUrl(oauthClient, {
-    scope: 'openid profile email',
+    scope,
     state,
     nonce,
   });
@@ -77,6 +91,13 @@ router.get('/callback', asyncHandler(async (req, res) => {
   const oauthClient = await createConfidentialClient(config);
   const { state, nonce } = req.session.webAuthOauth || {};
   const tokenSet = await authorizationCodeGrant(oauthClient, req, { state, nonce });
+
+  const returnPath = consumeOAuthReturn(req, tokenSet);
+  if (returnPath) {
+    delete req.session.webAuthOauth;
+    return res.redirect(returnPath);
+  }
+
   const userinfo = await oauthClient.userinfo(tokenSet.access_token);
 
   req.session.webAuth = { tokens: tokenSet, userinfo };

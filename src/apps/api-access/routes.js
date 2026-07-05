@@ -2,20 +2,13 @@ import { Router } from 'express';
 import { appConfig, isConfigured, missingConfigMessage, pingoneConfig } from '../../config/pingone.js';
 import { asyncHandler } from '../../middleware/error-handler.js';
 import { validateBearerToken } from '../../middleware/bearer-auth.js';
-import {
-  createConfidentialClient,
-  buildAuthorizationUrl,
-  authorizationCodeGrant,
-  generateState,
-  generateNonce,
-  clientCredentialsToken,
-} from '../../lib/pingone-client.js';
+import { clientCredentialsToken } from '../../lib/pingone-client.js';
 import { summarizeAccessToken } from '../../lib/jwt-display.js';
 import { getLab } from '../../lib/lab-meta.js';
 
 const config = appConfig('API_ACCESS');
 const m2mConfig = appConfig('M2M');
-const webAuthConfig = appConfig('WEB_AUTH', { path: '/labs/api-access' });
+const webAuthConfig = appConfig('WEB_AUTH', { path: '/labs/web-auth' });
 const lab = getLab('api-access');
 
 const router = Router();
@@ -45,7 +38,7 @@ router.get('/', (req, res) => {
     webAuthConfigured: isConfigured(webAuthConfig.clientId),
     m2mConfigured: isConfigured(m2mConfig.clientId),
     sessionTokenSource: sessionToken?.name || null,
-    loginRedirectUri: webAuthConfig.redirectUri,
+    webAuthRedirectUri: webAuthConfig.redirectUri,
     hideTryIt: true,
   });
 });
@@ -62,23 +55,13 @@ router.get('/login', asyncHandler(async (req, res) => {
   }
 
   const scope = req.query.scope || 'openid profile';
-  const oauthClient = await createConfidentialClient(webAuthConfig);
-  const state = generateState();
-  const nonce = generateNonce();
-  req.session.apiAccessOauth = { state, nonce, scope };
+  req.session.oauthReturn = {
+    target: 'api-access',
+    path: '/labs/api-access',
+    scope,
+  };
 
-  const url = buildAuthorizationUrl(oauthClient, { scope, state, nonce });
-  res.redirect(url);
-}));
-
-router.get('/callback', asyncHandler(async (req, res) => {
-  const oauthClient = await createConfidentialClient(webAuthConfig);
-  const { state, nonce } = req.session.apiAccessOauth || {};
-  const tokenSet = await authorizationCodeGrant(oauthClient, req, { state, nonce });
-
-  req.session.apiAccess = { tokens: tokenSet };
-  delete req.session.apiAccessOauth;
-  res.redirect('/labs/api-access');
+  res.redirect(`/labs/web-auth/login?scope=${encodeURIComponent(scope)}`);
 }));
 
 router.get('/demo-token/session', (req, res) => {
