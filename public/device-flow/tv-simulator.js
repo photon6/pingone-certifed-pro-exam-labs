@@ -13,6 +13,8 @@ const els = {
   verificationUri: null,
   approveLink: null,
   copyCodeBtn: null,
+  copyUrlBtn: null,
+  approvalPanel: null,
   codeHint: null,
   countdown: null,
   pollStatus: null,
@@ -35,33 +37,49 @@ function displayUserCode(code) {
 
 function updateApprovalLinks(auth) {
   const complete = auth?.verification_uri_complete || auth?.verification_uri || '#';
+  const verificationUri = auth?.verification_uri || '';
+
   els.verificationUri.href = complete;
-  els.verificationUri.textContent = auth?.verification_uri || '';
+  els.verificationUri.textContent = verificationUri || '—';
   if (els.approveLink) {
     els.approveLink.href = complete;
-    els.approveLink.classList.toggle('hidden', !auth?.user_code);
   }
   if (els.copyCodeBtn) {
-    els.copyCodeBtn.classList.toggle('hidden', !auth?.user_code);
     els.copyCodeBtn.dataset.code = auth?.user_code || '';
+    els.copyCodeBtn.disabled = !auth?.user_code;
+  }
+  if (els.copyUrlBtn) {
+    els.copyUrlBtn.dataset.url = complete !== '#' ? complete : '';
+    els.copyUrlBtn.disabled = !verificationUri;
+  }
+  if (els.approvalPanel) {
+    const show = Boolean(auth?.user_code);
+    els.approvalPanel.classList.toggle('hidden', !show);
   }
   if (els.codeHint) {
     els.codeHint.textContent = auth?.user_code
-      ? 'Prefer the approval link (code is pre-filled). If typing manually, include the hyphen exactly as shown.'
+      ? 'Open the approval page in another browser, or copy the URL below. If typing the code manually, include the hyphen exactly as shown on the TV.'
       : '';
   }
 }
 
-async function copyUserCode() {
-  const code = els.copyCodeBtn?.dataset.code;
-  if (!code) return;
+async function copyText(button, value, successLabel, defaultLabel) {
+  if (!value) return;
   try {
-    await navigator.clipboard.writeText(code);
-    els.copyCodeBtn.textContent = 'Copied!';
-    setTimeout(() => { els.copyCodeBtn.textContent = 'Copy code'; }, 1500);
+    await navigator.clipboard.writeText(value);
+    button.textContent = successLabel;
+    setTimeout(() => { button.textContent = defaultLabel; }, 1500);
   } catch {
-    els.copyCodeBtn.textContent = code;
+    button.textContent = value;
   }
+}
+
+async function copyUserCode() {
+  await copyText(els.copyCodeBtn, els.copyCodeBtn?.dataset.code, 'Copied!', 'Copy code');
+}
+
+async function copyVerificationUrl() {
+  await copyText(els.copyUrlBtn, els.copyUrlBtn?.dataset.url, 'Copied!', 'Copy verification URL');
 }
 
 function setScreen(name) {
@@ -153,6 +171,7 @@ function render() {
       els.statusLine.textContent = 'Press OK on your remote to sign in';
       els.startBtn.classList.remove('hidden');
       els.resetBtn.classList.add('hidden');
+      updateApprovalLinks(null);
       break;
 
     case 'awaiting_user':
@@ -178,6 +197,7 @@ function render() {
       setScreen('success');
       els.statusLine.textContent = `Welcome, ${state.userinfo?.name || state.userinfo?.preferred_username || 'viewer'}!`;
       els.pollStatus.textContent = 'Signed in successfully';
+      updateApprovalLinks(null);
       stopPolling();
       els.startBtn.classList.add('hidden');
       els.resetBtn.classList.remove('hidden');
@@ -189,6 +209,7 @@ function render() {
       els.statusLine.textContent = 'Unable to sign in';
       els.errorBox.textContent = state.error || 'Something went wrong.';
       els.errorBox.classList.remove('hidden');
+      updateApprovalLinks(null);
       stopPolling();
       els.startBtn.classList.add('hidden');
       els.resetBtn.classList.remove('hidden');
@@ -274,8 +295,12 @@ async function startFlow() {
 
 async function resetFlow() {
   stopPolling();
-  await fetch(`${API_BASE}/reset`, { method: 'POST' });
-  state = { status: null };
+  try {
+    const response = await fetch(`${API_BASE}/reset`, { method: 'POST' });
+    state = await readJson(response);
+  } catch {
+    state = { status: null };
+  }
   render();
 }
 
@@ -293,6 +318,8 @@ function bindElements() {
   els.verificationUri = $('tv-verification-uri');
   els.approveLink = $('tv-approve-link');
   els.copyCodeBtn = $('tv-copy-code');
+  els.copyUrlBtn = $('tv-copy-url');
+  els.approvalPanel = $('device-flow-approval');
   els.codeHint = $('tv-code-hint');
   els.countdown = $('tv-countdown');
   els.pollStatus = $('tv-poll-status');
@@ -310,8 +337,9 @@ function init() {
   if (!els.app) return;
 
   els.startBtn.addEventListener('click', startFlow);
-  els.resetBtn.addEventListener('click', resetFlow);
+  els.resetBtn.addEventListener('click', () => { resetFlow().catch(handlePollError); });
   els.copyCodeBtn?.addEventListener('click', copyUserCode);
+  els.copyUrlBtn?.addEventListener('click', copyVerificationUrl);
 
   countdownTimer = setInterval(updateCountdown, 1000);
   loadStatus();

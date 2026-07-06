@@ -34,11 +34,6 @@
                 <div class="tv-code-block">
                   <p class="tv-code-label">Your activation code</p>
                   <p id="tv-user-code" class="tv-user-code">— — — —</p>
-                  <p id="tv-code-hint" class="tv-code-hint"></p>
-                  <a id="tv-approve-link" class="btn tv-approve-link hidden" href="#" target="_blank" rel="noopener">Open approval page</a>
-                  <button id="tv-copy-code" type="button" class="btn secondary tv-copy-code hidden">Copy code</button>
-                  <p class="tv-code-label">Or visit</p>
-                  <a id="tv-verification-uri" class="tv-verification-uri" href="#" target="_blank" rel="noopener"></a>
                 </div>
 
                 <p id="tv-countdown" class="tv-countdown"></p>
@@ -51,10 +46,22 @@
               <button id="tv-reset" type="button" class="tv-remote-btn secondary hidden" title="Reset TV">Reset</button>
             </div>
           </div>
-          <p class="hint tv-footnote">The TV has no keyboard — authorization happens on your secondary device.</p>
+          <p class="hint tv-footnote">The TV has no keyboard — use the approval panel on the right on your phone or laptop.</p>
         </div>
 
         <aside class="device-flow-inspector-panel">
+          <div id="device-flow-approval" class="device-flow-approval hidden">
+            <h3>Authorize on another device</h3>
+            <p id="tv-code-hint" class="hint"></p>
+            <div class="device-flow-approval-actions">
+              <a id="tv-approve-link" class="btn" href="#" target="_blank" rel="noopener">Open approval page</a>
+              <button id="tv-copy-code" type="button" class="btn secondary">Copy code</button>
+              <button id="tv-copy-url" type="button" class="btn secondary">Copy verification URL</button>
+            </div>
+            <p class="device-flow-approval-label">Verification URI</p>
+            <a id="tv-verification-uri" class="device-flow-verification-uri" href="#" target="_blank" rel="noopener"></a>
+          </div>
+
           <h3>OAuth Configuration</h3>
           <p class="hint">Live values from this device authorization session.</p>
           <dl id="oauth-inspector" class="oauth-inspector"></dl>

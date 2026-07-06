@@ -379,14 +379,13 @@ hr { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
 }
 
 .tv-screen {
-  aspect-ratio: 16 / 10;
+  min-height: 12rem;
   background: radial-gradient(ellipse at center, #162033 0%, #0a0f17 70%);
   border-radius: 8px;
   border: 1px solid #2a3548;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   position: relative;
 }
 
@@ -439,6 +438,47 @@ hr { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
   word-break: break-all;
 }
 
+.device-flow-approval {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.device-flow-approval h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.35rem;
+}
+
+.device-flow-approval-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.device-flow-approval-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.device-flow-verification-uri {
+  display: block;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  word-break: break-all;
+  line-height: 1.5;
+  padding: 0.65rem;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  text-decoration: none;
+}
+.device-flow-verification-uri:hover {
+  border-color: var(--accent);
+}
+
 .tv-user-code {
   font-family: var(--mono);
   font-size: clamp(1.6rem, 5vw, 2.2rem);
@@ -457,17 +497,6 @@ hr { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
   margin: 0.5rem 0 0.75rem;
   line-height: 1.4;
 }
-
-.tv-approve-link,
-.tv-copy-code {
-  display: inline-block;
-  margin: 0.35rem 0.25rem;
-  font-size: 0.82rem;
-  padding: 0.45rem 0.85rem;
-}
-
-.tv-copy-code.hidden,
-.tv-approve-link.hidden { display: none !important; }
 
 .tv-countdown,
 .tv-poll-status {
