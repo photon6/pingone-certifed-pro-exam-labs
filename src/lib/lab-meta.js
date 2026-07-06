@@ -61,13 +61,13 @@ export const labs = [
   },
   {
     id: 'device-flow',
-    name: 'Device Flow',
+    name: 'Device Authorization',
     path: '/labs/device-flow',
     pingoneType: 'Device App',
     grant: 'Device Authorization (RFC 8628)',
     clientType: 'Public',
-    description: 'For input-constrained devices (TV, CLI). User authorizes on a secondary device while the client polls for tokens.',
-    examTopics: ['Device Authorization Grant', 'user_code / device_code', 'Polling interval', 'Slow_down handling'],
+    description: 'Simulates a smart TV or other input-constrained device. The TV displays a user code while you authorize on a phone or laptop; the device polls for tokens.',
+    examTopics: ['Device Authorization Grant', 'user_code / device_code', 'Polling interval', 'Slow_down handling', 'No redirect URI on device'],
   },
   {
     id: 'ciba',

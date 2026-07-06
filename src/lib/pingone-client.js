@@ -117,12 +117,60 @@ export async function exchangeToken({
 }
 
 export async function deviceAuthorization({ clientId, scope }) {
-  const oauthClient = await createWorkerClient({ clientId, tokenAuthMethod: 'none' });
-  return oauthClient.deviceAuthorization({ scope });
+  const oauthClient = await createPublicClient({
+    clientId,
+    redirectUri: 'urn:ietf:wg:oauth:2.0:oob',
+  });
+  const handle = await oauthClient.deviceAuthorization({ scope });
+  return {
+    device_code: handle.device_code,
+    user_code: handle.user_code,
+    verification_uri: handle.verification_uri,
+    verification_uri_complete: handle.verification_uri_complete,
+    expires_in: handle.expires_in,
+    expires_at: Math.floor(Date.now() / 1000) + handle.expires_in,
+    interval: 5,
+  };
 }
 
-export async function pollDeviceToken(oauthClient, deviceCode, interval = 5) {
-  return oauthClient.pollDeviceAuthorizationGrant(deviceCode, { interval });
+export async function pollDeviceAuthorizationOnce(oauthClient, deviceCode) {
+  try {
+    const tokens = await oauthClient.grant({
+      grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+      device_code: deviceCode,
+    });
+    return { status: 'complete', tokens };
+  } catch (err) {
+    if (err.error === 'authorization_pending') {
+      return { status: 'pending' };
+    }
+    if (err.error === 'slow_down') {
+      return { status: 'pending', slowDown: true };
+    }
+    if (err.error === 'expired_token') {
+      return { status: 'expired', error: err.message };
+    }
+    throw err;
+  }
+}
+
+export async function createDeviceFlowClient(clientId) {
+  return createPublicClient({
+    clientId,
+    redirectUri: 'urn:ietf:wg:oauth:2.0:oob',
+  });
+}
+
+/** @deprecated Use pollDeviceAuthorizationOnce for incremental polling UIs */
+export async function pollDeviceToken(oauthClient, deviceCode) {
+  const result = await pollDeviceAuthorizationOnce(oauthClient, deviceCode);
+  if (result.status === 'complete') return result.tokens;
+  if (result.status === 'pending') {
+    const err = new Error('authorization_pending');
+    err.error = 'authorization_pending';
+    throw err;
+  }
+  throw new Error(result.error || 'Device authorization failed');
 }
 
 export async function initiateCiba({

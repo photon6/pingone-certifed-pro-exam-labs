@@ -25,7 +25,7 @@ Open [http://localhost:3000](http://localhost:3000) for the study dashboard. Sel
 | [API Access](/labs/api-access) | Worker / Resource Server | Bearer JWT validation |
 | [Long-Running Sessions](/labs/long-session) | Web App (OIDC) | Authorization Code + Refresh Token |
 | [Machine-to-Machine](/labs/m2m) | Worker App | Client Credentials |
-| [Device Flow](/labs/device-flow) | Device App | RFC 8628 Device Authorization |
+| [Device Authorization](/labs/device-flow) | Device App | RFC 8628 Device Authorization (Smart TV sim) |
 | [CIBA](/labs/ciba) | Web App with CIBA | Client Initiated Backchannel Authentication |
 | [Token Exchange](/labs/token-exchange) | Worker App | RFC 8693 Token Exchange |
 | [Enhanced Security](/labs/enhanced-security) | Web App (OIDC) | PAR, PKCE, step-up (`acr_values`) |

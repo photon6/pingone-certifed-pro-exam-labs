@@ -28,6 +28,9 @@
       <li>Set PingOne Token Endpoint Authentication Method to <strong>Private Key JWT</strong>.</li>
     <% } %>
     <li>Enable required grant type: <strong><%= lab.grant %></strong></li>
+    <% if (typeof setupNote !== 'undefined' && setupNote) { %>
+      <li><%= setupNote %></li>
+    <% } %>
   </ol>
   <%- include('jwks-setup') %>
   <div class="exam-topics">

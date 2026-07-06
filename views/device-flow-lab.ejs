@@ -11,44 +11,77 @@
   <main class="container">
     <%- include('partials/lab-content') %>
 
-    <section class="panel">
-      <h2>Device Authorization Flow</h2>
-      <% if (configured) { %>
-        <% if (!device) { %>
-          <form method="post" action="/labs/device-flow/start">
-            <button type="submit" class="btn">Start Device Flow</button>
-          </form>
-        <% } else { %>
-          <div class="device-codes">
-            <p>Visit the verification URI and enter the user code:</p>
-            <dl>
-              <dt>Verification URI</dt>
-              <dd><a href="<%= device.verification_uri_complete || device.verification_uri %>" target="_blank"><%= device.verification_uri %></a></dd>
-              <dt>User Code</dt>
-              <dd class="user-code"><%= device.user_code %></dd>
-              <dt>Expires in</dt>
-              <dd><%= device.expires_in %> seconds</dd>
-            </dl>
-            <form method="post" action="/labs/device-flow/poll">
-              <button type="submit" class="btn">Poll for Token</button>
-            </form>
-            <form method="post" action="/labs/device-flow/clear">
-              <button type="submit" class="btn secondary">Reset</button>
-            </form>
+    <% if (configured) { %>
+    <section class="panel device-flow-panel">
+      <h2>Smart TV Simulator</h2>
+      <p class="hint device-flow-intro">
+        This simulates an input-constrained device (smart TV, set-top box, or IoT display).
+        The TV requests a <strong>device code</strong> and shows a <strong>user code</strong> for you to enter on a phone or laptop — the classic RFC 8628 Device Authorization Grant.
+      </p>
+
+      <div id="device-flow-app" class="device-flow-layout"
+        data-client-id="<%= clientId %>"
+        data-issuer="<%= issuer %>">
+
+        <div class="tv-shell">
+          <div class="tv-bezel">
+            <div class="tv-brand">PingOne Stream</div>
+            <div id="tv-screen" class="tv-screen" data-screen="welcome">
+              <div class="tv-screen-inner">
+                <div class="tv-icon" aria-hidden="true">📺</div>
+                <p id="tv-status-line" class="tv-status-line">Press OK on your remote to sign in</p>
+
+                <div class="tv-code-block">
+                  <p class="tv-code-label">Enter this code at</p>
+                  <a id="tv-verification-uri" class="tv-verification-uri" href="#" target="_blank" rel="noopener"></a>
+                  <p id="tv-user-code" class="tv-user-code">— — — —</p>
+                </div>
+
+                <p id="tv-countdown" class="tv-countdown"></p>
+                <p id="tv-poll-status" class="tv-poll-status"></p>
+                <div id="tv-error" class="tv-error hidden"></div>
+              </div>
+            </div>
+            <div class="tv-remote-hint">
+              <button id="tv-start" type="button" class="tv-remote-btn" title="Simulate remote OK">OK</button>
+              <button id="tv-reset" type="button" class="tv-remote-btn secondary hidden" title="Reset TV">Reset</button>
+            </div>
           </div>
-        <% } %>
-        <% if (status === 'complete' && tokens) { %>
-          <div class="result success">
-            <h3>Tokens received</h3>
-            <pre><%= JSON.stringify(tokens, null, 2) %></pre>
-          </div>
-        <% } %>
-        <% if (status === 'error') { %>
-          <div class="alert error"><%= error %></div>
-        <% } %>
-      <% } %>
+          <p class="hint tv-footnote">The TV has no keyboard — authorization happens on your secondary device.</p>
+        </div>
+
+        <aside class="device-flow-inspector-panel">
+          <h3>OAuth Configuration</h3>
+          <p class="hint">Live values from this device authorization session.</p>
+          <dl id="oauth-inspector" class="oauth-inspector"></dl>
+
+          <h3>Token Endpoint Polling</h3>
+          <p class="hint">The TV polls with <code>grant_type=urn:ietf:params:oauth:grant-type:device_code</code> until PingOne returns tokens or the code expires.</p>
+          <div id="poll-log" class="poll-log"></div>
+        </aside>
+      </div>
+
+      <div class="device-flow-results hidden">
+        <h3>Tokens received on the TV</h3>
+        <h4>Token summary (JWT headers decoded)</h4>
+        <pre id="device-token-output"></pre>
+        <h4>Userinfo</h4>
+        <pre id="device-user-output"></pre>
+      </div>
     </section>
+
+    <section class="panel">
+      <h2>How the two devices interact</h2>
+      <ol class="setup-steps device-flow-steps">
+        <li><strong>TV (this simulator)</strong> — POSTs to PingOne <code>device_authorization_endpoint</code> and receives <code>device_code</code> + <code>user_code</code>.</li>
+        <li><strong>Your phone / laptop</strong> — Open the verification URI, sign in, and enter the user code shown on the TV.</li>
+        <li><strong>TV polls</strong> — Repeatedly POSTs to the token endpoint with the <code>device_code</code> until authorization completes (<code>authorization_pending</code> until approved).</li>
+        <li><strong>Tokens on TV</strong> — Access token (and ID token) are returned to the constrained device — no redirect URI or browser on the TV required.</li>
+      </ol>
+    </section>
+    <% } %>
   </main>
+  <script src="/device-flow/tv-simulator.js"></script>
   <%- include('partials/footer') %>
 </body>
 </html>
