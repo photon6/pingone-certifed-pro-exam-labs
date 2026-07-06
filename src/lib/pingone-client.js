@@ -51,10 +51,16 @@ async function buildClientMetadata({
   return metadata;
 }
 
+function instantiateClient(issuer, metadata) {
+  const { jwks, ...clientMetadata } = metadata;
+  // openid-client loads signing keys from the second constructor arg, not metadata.jwks
+  return jwks ? new issuer.Client(clientMetadata, jwks) : new issuer.Client(clientMetadata);
+}
+
 export async function createOAuthClient(options) {
   const issuer = await getIssuer();
   const metadata = await buildClientMetadata(options);
-  return new issuer.Client(metadata);
+  return instantiateClient(issuer, metadata);
 }
 
 export async function createConfidentialClient(options) {
@@ -78,7 +84,7 @@ export async function createWorkerClient({ clientId, clientSecret, tokenAuthMeth
   const metadata = await buildClientMetadata({ clientId, clientSecret, tokenAuthMethod });
   delete metadata.redirect_uris;
   delete metadata.response_types;
-  return new issuer.Client(metadata);
+  return instantiateClient(issuer, metadata);
 }
 
 export async function clientCredentialsToken({ clientId, clientSecret, scope, tokenAuthMethod }) {
