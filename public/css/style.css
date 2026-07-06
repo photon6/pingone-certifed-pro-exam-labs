@@ -443,13 +443,31 @@ hr { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
   font-family: var(--mono);
   font-size: clamp(1.6rem, 5vw, 2.2rem);
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.08em;
   color: #fff;
   background: rgba(0, 180, 160, 0.12);
   border: 2px dashed rgba(0, 180, 160, 0.45);
   border-radius: 10px;
   padding: 0.65rem 0.5rem;
 }
+
+.tv-code-hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0.5rem 0 0.75rem;
+  line-height: 1.4;
+}
+
+.tv-approve-link,
+.tv-copy-code {
+  display: inline-block;
+  margin: 0.35rem 0.25rem;
+  font-size: 0.82rem;
+  padding: 0.45rem 0.85rem;
+}
+
+.tv-copy-code.hidden,
+.tv-approve-link.hidden { display: none !important; }
 
 .tv-countdown,
 .tv-poll-status {

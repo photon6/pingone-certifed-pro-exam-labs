@@ -11,6 +11,9 @@ const els = {
   statusLine: null,
   userCode: null,
   verificationUri: null,
+  approveLink: null,
+  copyCodeBtn: null,
+  codeHint: null,
   countdown: null,
   pollStatus: null,
   inspector: null,
@@ -26,10 +29,39 @@ function $(id) {
   return document.getElementById(id);
 }
 
-function formatUserCode(code) {
-  if (!code) return '— — — —';
-  const clean = code.replace(/-/g, '');
-  return clean.match(/.{1,4}/g)?.join(' ') || code;
+function displayUserCode(code) {
+  return code || '— — — —';
+}
+
+function updateApprovalLinks(auth) {
+  const complete = auth?.verification_uri_complete || auth?.verification_uri || '#';
+  els.verificationUri.href = complete;
+  els.verificationUri.textContent = auth?.verification_uri || '';
+  if (els.approveLink) {
+    els.approveLink.href = complete;
+    els.approveLink.classList.toggle('hidden', !auth?.user_code);
+  }
+  if (els.copyCodeBtn) {
+    els.copyCodeBtn.classList.toggle('hidden', !auth?.user_code);
+    els.copyCodeBtn.dataset.code = auth?.user_code || '';
+  }
+  if (els.codeHint) {
+    els.codeHint.textContent = auth?.user_code
+      ? 'Prefer the approval link (code is pre-filled). If typing manually, include the hyphen exactly as shown.'
+      : '';
+  }
+}
+
+async function copyUserCode() {
+  const code = els.copyCodeBtn?.dataset.code;
+  if (!code) return;
+  try {
+    await navigator.clipboard.writeText(code);
+    els.copyCodeBtn.textContent = 'Copied!';
+    setTimeout(() => { els.copyCodeBtn.textContent = 'Copy code'; }, 1500);
+  } catch {
+    els.copyCodeBtn.textContent = code;
+  }
 }
 
 function setScreen(name) {
@@ -126,9 +158,8 @@ function render() {
     case 'awaiting_user':
       setScreen('code');
       els.statusLine.textContent = 'On your phone or computer, approve this device';
-      els.userCode.textContent = formatUserCode(state.authorization.user_code);
-      els.verificationUri.href = state.authorization.verification_uri_complete || state.authorization.verification_uri;
-      els.verificationUri.textContent = state.authorization.verification_uri;
+      els.userCode.textContent = displayUserCode(state.authorization.user_code);
+      updateApprovalLinks(state.authorization);
       els.startBtn.classList.add('hidden');
       els.resetBtn.classList.remove('hidden');
       break;
@@ -136,7 +167,8 @@ function render() {
     case 'polling':
       setScreen('waiting');
       els.statusLine.textContent = 'Waiting for you to enter the code on another device…';
-      els.userCode.textContent = formatUserCode(state.authorization.user_code);
+      els.userCode.textContent = displayUserCode(state.authorization.user_code);
+      updateApprovalLinks(state.authorization);
       els.pollStatus.textContent = `Polling token endpoint every ${state.currentInterval}s (attempt ${state.pollCount})`;
       els.startBtn.classList.add('hidden');
       els.resetBtn.classList.remove('hidden');
@@ -259,6 +291,9 @@ function bindElements() {
   els.statusLine = $('tv-status-line');
   els.userCode = $('tv-user-code');
   els.verificationUri = $('tv-verification-uri');
+  els.approveLink = $('tv-approve-link');
+  els.copyCodeBtn = $('tv-copy-code');
+  els.codeHint = $('tv-code-hint');
   els.countdown = $('tv-countdown');
   els.pollStatus = $('tv-poll-status');
   els.inspector = $('oauth-inspector');
@@ -276,6 +311,7 @@ function init() {
 
   els.startBtn.addEventListener('click', startFlow);
   els.resetBtn.addEventListener('click', resetFlow);
+  els.copyCodeBtn?.addEventListener('click', copyUserCode);
 
   countdownTimer = setInterval(updateCountdown, 1000);
   loadStatus();

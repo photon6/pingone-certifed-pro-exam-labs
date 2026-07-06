@@ -32,9 +32,13 @@
                 <p id="tv-status-line" class="tv-status-line">Press OK on your remote to sign in</p>
 
                 <div class="tv-code-block">
-                  <p class="tv-code-label">Enter this code at</p>
-                  <a id="tv-verification-uri" class="tv-verification-uri" href="#" target="_blank" rel="noopener"></a>
+                  <p class="tv-code-label">Your activation code</p>
                   <p id="tv-user-code" class="tv-user-code">— — — —</p>
+                  <p id="tv-code-hint" class="tv-code-hint"></p>
+                  <a id="tv-approve-link" class="btn tv-approve-link hidden" href="#" target="_blank" rel="noopener">Open approval page</a>
+                  <button id="tv-copy-code" type="button" class="btn secondary tv-copy-code hidden">Copy code</button>
+                  <p class="tv-code-label">Or visit</p>
+                  <a id="tv-verification-uri" class="tv-verification-uri" href="#" target="_blank" rel="noopener"></a>
                 </div>
 
                 <p id="tv-countdown" class="tv-countdown"></p>
@@ -74,7 +78,7 @@
       <h2>How the two devices interact</h2>
       <ol class="setup-steps device-flow-steps">
         <li><strong>TV (this simulator)</strong> — POSTs to PingOne <code>device_authorization_endpoint</code> and receives <code>device_code</code> + <code>user_code</code>.</li>
-        <li><strong>Your phone / laptop</strong> — Open the verification URI, sign in, and enter the user code shown on the TV.</li>
+        <li><strong>Your phone / laptop</strong> — Click <strong>Open approval page</strong> on the TV (or use the verification link). That pre-fills the code. If you type manually, use the hyphen exactly as shown (e.g. <code>3MC2-6NGR</code>, not <code>3MC2 6NGR</code>).</li>
         <li><strong>TV polls</strong> — Repeatedly POSTs to the token endpoint with the <code>device_code</code> until authorization completes (<code>authorization_pending</code> until approved).</li>
         <li><strong>Tokens on TV</strong> — Access token (and ID token) are returned to the constrained device — no redirect URI or browser on the TV required.</li>
       </ol>
