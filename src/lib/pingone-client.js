@@ -6,6 +6,7 @@ import {
   normalizeTokenAuthMethod,
   signRequestObject,
 } from './jwks.js';
+import { applyClientAuth, postFormJson } from './pingone-auth.js';
 
 let issuerPromise;
 
@@ -181,25 +182,59 @@ export async function initiateCiba({
   acrValues,
   tokenAuthMethod = 'client_secret_post',
 }) {
-  const oauthClient = await createWorkerClient({
+  const issuer = await getIssuer();
+  const cibaUrl = issuer.backchannel_authentication_endpoint
+    || `${issuer.issuer.replace(/\/$/, '')}/cibaAuthorization`;
+
+  const params = new URLSearchParams({
+    scope: 'openid profile',
+    login_hint: loginHint,
+    requested_expiry: String(requestedExpiry),
+  });
+  if (bindingMessage) params.set('binding_message', bindingMessage);
+  if (acrValues) params.set('acr_values', acrValues);
+
+  const auth = await applyClientAuth({
     clientId,
     clientSecret,
     tokenAuthMethod: tokenAuthMethod || 'client_secret_post',
+    audience: issuer.issuer,
   });
 
-  const params = {
-    scope: 'openid profile',
-    login_hint: loginHint,
-    requested_expiry: requestedExpiry,
-  };
-  if (bindingMessage) params.binding_message = bindingMessage;
-  if (acrValues) params.acr_values = acrValues;
-
-  return oauthClient.backchannelAuthentication(params);
+  return postFormJson(cibaUrl, params, auth);
 }
 
-export async function pollCibaToken(oauthClient, authReqId, interval = 2) {
-  return oauthClient.pollBackchannelAuthenticationGrant(authReqId, { interval });
+export async function pollCibaAuthorizationOnce(oauthClient, authReqId) {
+  try {
+    const tokens = await oauthClient.grant({
+      grant_type: 'urn:openid:params:grant-type:ciba',
+      auth_req_id: authReqId,
+    });
+    return { status: 'complete', tokens };
+  } catch (err) {
+    if (err.error === 'authorization_pending') {
+      return { status: 'pending' };
+    }
+    if (err.error === 'slow_down') {
+      return { status: 'pending', slowDown: true };
+    }
+    if (err.error === 'expired_token' || err.error === 'access_denied') {
+      return { status: 'error', error: err.message };
+    }
+    throw err;
+  }
+}
+
+/** @deprecated Use pollCibaAuthorizationOnce for incremental polling */
+export async function pollCibaToken(oauthClient, authReqId) {
+  const result = await pollCibaAuthorizationOnce(oauthClient, authReqId);
+  if (result.status === 'complete') return result.tokens;
+  if (result.status === 'pending') {
+    const err = new Error('authorization_pending');
+    err.error = 'authorization_pending';
+    throw err;
+  }
+  throw new Error(result.error || 'CIBA authorization failed');
 }
 
 export async function pushedAuthorizationRequest(oauthClient, params) {

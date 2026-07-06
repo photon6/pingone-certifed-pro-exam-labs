@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { appConfig, isConfigured, missingConfigMessage } from '../../config/pingone.js';
 import { asyncHandler } from '../../middleware/error-handler.js';
-import { initiateCiba, pollCibaToken, createConfidentialClient } from '../../lib/pingone-client.js';
+import { initiateCiba, pollCibaAuthorizationOnce, createWorkerClient } from '../../lib/pingone-client.js';
 import { getLab } from '../../lib/lab-meta.js';
 import { summarizeTokenSet } from '../../lib/jwt-display.js';
 
@@ -41,6 +41,7 @@ router.post('/initiate', asyncHandler(async (req, res) => {
     clientSecret: config.clientSecret,
     loginHint,
     bindingMessage: bindingMessage || 'PingOne CIBA Lab',
+    tokenAuthMethod: config.tokenAuthMethod,
   });
 
   req.session.ciba = {
@@ -62,20 +63,27 @@ router.post('/poll', asyncHandler(async (req, res) => {
     return res.redirect('/labs/ciba');
   }
 
-  const oauthClient = await createConfidentialClient({
-    ...config,
-    redirectUri: `${config.redirectUri || 'http://localhost'}/labs/ciba/callback`,
+  const oauthClient = await createWorkerClient({
+    clientId: config.clientId,
+    clientSecret: config.clientSecret,
+    tokenAuthMethod: config.tokenAuthMethod,
   });
 
   try {
-    const tokenSet = await pollCibaToken(
-      oauthClient,
-      ciba.authRequest.auth_req_id,
-      ciba.authRequest.interval || 2,
-    );
-    req.session.ciba.tokens = tokenSet;
-    req.session.ciba.status = 'complete';
-    req.session.ciba.error = null;
+    const result = await pollCibaAuthorizationOnce(oauthClient, ciba.authRequest.auth_req_id);
+    if (result.status === 'complete') {
+      req.session.ciba.tokens = result.tokens;
+      req.session.ciba.status = 'complete';
+      req.session.ciba.error = null;
+    } else if (result.status === 'pending') {
+      req.session.ciba.status = 'pending';
+      if (result.slowDown) {
+        req.session.ciba.authRequest.interval = Math.min((ciba.authRequest.interval || 2) + 2, 15);
+      }
+    } else {
+      req.session.ciba.status = 'error';
+      req.session.ciba.error = result.error;
+    }
   } catch (err) {
     req.session.ciba.status = 'error';
     req.session.ciba.error = err.message;
