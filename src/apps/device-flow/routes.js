@@ -9,13 +9,16 @@ import {
 import { getLab } from '../../lib/lab-meta.js';
 import { summarizeTokenSet } from '../../lib/jwt-display.js';
 
-const config = appConfig('DEVICE_FLOW');
+const config = appConfig('DEVICE_FLOW', {
+  path: '/labs/device-flow',
+  defaultTokenAuthMethod: 'none',
+});
 const lab = getLab('device-flow');
 const SCOPE = 'openid profile';
 
 const PINGONE_SETUP_STEPS = [
   'Go to <strong>Applications → Applications</strong> and click <strong>+</strong>. Name the app and choose type <strong>Device Authorization</strong>. That single step creates the app <em>and</em> enables the Device Authorization grant — you do not enable the grant separately.',
-  'On the <strong>Configuration</strong> tab, set Token Endpoint Authentication Method to <strong>None</strong> (default for this app type). Redirect URIs are not used; if PingOne requires one, use a placeholder like <code>http://localhost:3000</code>.',
+  'On the <strong>Configuration</strong> tab, set Token Endpoint Authentication Method to <strong>None</strong> (recommended for this lab). If you use Private Key JWT instead, register the lab JWKS in PingOne and set <code>DEVICE_FLOW_TOKEN_AUTH_METHOD=private_key_jwt</code> in <code>.env</code>. The PingOne setting and <code>.env</code> must match.',
   'On the <strong>Resources</strong> tab, select scopes <code>openid</code> and <code>profile</code> (Resources → pencil icon → check scopes → Save).',
   'Enable the application (blue toggle at the top of the details panel).',
   'Copy the <strong>Client ID</strong> from the Configuration tab into <code>DEVICE_FLOW_CLIENT_ID</code> in your <code>.env</code> file. No client secret is needed.',
@@ -72,10 +75,33 @@ function publicDeviceState(deviceFlow) {
   };
 }
 
+function formatApiError(err) {
+  if (err.error_description) {
+    return `${err.error}: ${err.error_description}`;
+  }
+  if (err.error) {
+    return String(err.error);
+  }
+  return err.message || 'An unexpected error occurred';
+}
+
+function apiAsyncHandler(fn) {
+  return asyncHandler(async (req, res, next) => {
+    try {
+      await fn(req, res, next);
+    } catch (err) {
+      console.error(err);
+      res.status(err.status || 500).json({ error: formatApiError(err) });
+    }
+  });
+}
+
 async function startDeviceFlow(req) {
   const response = await deviceAuthorization({
     clientId: config.clientId,
+    clientSecret: config.clientSecret,
     scope: SCOPE,
+    tokenAuthMethod: config.tokenAuthMethod,
   });
 
   req.session.deviceFlow = {
@@ -106,7 +132,11 @@ async function pollDeviceFlow(req) {
     return deviceFlow;
   }
 
-  const oauthClient = await createDeviceFlowClient(config.clientId);
+  const oauthClient = await createDeviceFlowClient({
+    clientId: config.clientId,
+    clientSecret: config.clientSecret,
+    tokenAuthMethod: config.tokenAuthMethod,
+  });
   const result = await pollDeviceAuthorizationOnce(oauthClient, authorization.device_code);
   deviceFlow.pollCount += 1;
 
@@ -157,13 +187,14 @@ router.get('/', (req, res) => {
   res.render('device-flow-lab', {
     lab,
     configured,
-    configError: missingConfigMessage('DEVICE_FLOW', config.clientId),
+    configError: missingConfigMessage('DEVICE_FLOW', config.clientId, config.tokenAuthMethod),
     clientId: config.clientId,
     issuer: pingoneConfig.issuer,
     authHost: pingoneConfig.authHost,
     environmentId: pingoneConfig.environmentId,
     deviceState: publicDeviceState(deviceFlow),
     hideTryIt: true,
+    tokenAuthMethod: config.tokenAuthMethod,
     pingoneSetupSteps: PINGONE_SETUP_STEPS,
   });
 });
@@ -183,15 +214,15 @@ router.post('/clear', (req, res) => {
   res.redirect('/labs/device-flow');
 });
 
-router.post('/api/start', asyncHandler(async (req, res) => {
+router.post('/api/start', apiAsyncHandler(async (req, res) => {
   if (!isConfigured(config.clientId)) {
-    return res.status(400).json({ error: missingConfigMessage('DEVICE_FLOW', config.clientId) });
+    return res.status(400).json({ error: missingConfigMessage('DEVICE_FLOW', config.clientId, config.tokenAuthMethod) });
   }
   const deviceFlow = await startDeviceFlow(req);
   res.json(publicDeviceState(deviceFlow));
 }));
 
-router.post('/api/poll', asyncHandler(async (req, res) => {
+router.post('/api/poll', apiAsyncHandler(async (req, res) => {
   const deviceFlow = await pollDeviceFlow(req);
   res.json(publicDeviceState(deviceFlow));
 }));

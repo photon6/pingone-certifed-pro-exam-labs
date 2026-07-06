@@ -116,11 +116,8 @@ export async function exchangeToken({
   return oauthClient.grant(params);
 }
 
-export async function deviceAuthorization({ clientId, scope }) {
-  const oauthClient = await createPublicClient({
-    clientId,
-    redirectUri: 'urn:ietf:wg:oauth:2.0:oob',
-  });
+export async function deviceAuthorization({ clientId, clientSecret, scope, tokenAuthMethod = 'none' }) {
+  const oauthClient = await createDeviceFlowClient({ clientId, clientSecret, tokenAuthMethod });
   const handle = await oauthClient.deviceAuthorization({ scope });
   return {
     device_code: handle.device_code,
@@ -154,10 +151,12 @@ export async function pollDeviceAuthorizationOnce(oauthClient, deviceCode) {
   }
 }
 
-export async function createDeviceFlowClient(clientId) {
-  return createPublicClient({
+export async function createDeviceFlowClient({ clientId, clientSecret, tokenAuthMethod = 'none' }) {
+  return createOAuthClient({
     clientId,
+    clientSecret,
     redirectUri: 'urn:ietf:wg:oauth:2.0:oob',
+    tokenAuthMethod,
   });
 }
 

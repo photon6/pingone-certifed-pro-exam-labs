@@ -28,8 +28,11 @@ export const pingoneConfig = {
 export function appConfig(key, defaults = {}) {
   const prefix = key.toUpperCase();
   const globalMethod = process.env.PINGONE_TOKEN_AUTH_METHOD || 'client_secret_basic';
+  const fallback = defaults.defaultTokenAuthMethod || globalMethod;
   const tokenAuthMethod = normalizeTokenAuthMethod(
-    process.env[`${prefix}_TOKEN_AUTH_METHOD`] || globalMethod,
+    process.env[`${prefix}_TOKEN_AUTH_METHOD`]
+      || process.env[`${prefix}_AUTH_METHOD`]
+      || fallback,
   );
 
   return {

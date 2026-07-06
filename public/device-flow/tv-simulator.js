@@ -199,9 +199,18 @@ function handlePollError(err) {
   render();
 }
 
+async function readJson(response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(text.replace(/<[^>]+>/g, ' ').trim().slice(0, 240) || `Request failed (${response.status})`);
+  }
+}
+
 async function pollOnce() {
   const response = await fetch(`${API_BASE}/poll`, { method: 'POST' });
-  const data = await response.json();
+  const data = await readJson(response);
   if (!response.ok) {
     throw new Error(data.error || 'Poll failed');
   }
@@ -216,7 +225,7 @@ async function startFlow() {
 
   try {
     const response = await fetch(`${API_BASE}/start`, { method: 'POST' });
-    const data = await response.json();
+    const data = await readJson(response);
     if (!response.ok) {
       throw new Error(data.error || 'Failed to start device flow');
     }
@@ -240,7 +249,7 @@ async function resetFlow() {
 
 async function loadStatus() {
   const response = await fetch(`${API_BASE}/status`);
-  state = await response.json();
+  state = await readJson(response);
   render();
 }
 
