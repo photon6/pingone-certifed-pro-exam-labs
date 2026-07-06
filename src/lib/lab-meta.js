@@ -63,7 +63,7 @@ export const labs = [
     id: 'device-flow',
     name: 'Device Authorization',
     path: '/labs/device-flow',
-    pingoneType: 'Device App',
+    pingoneType: 'Device Authorization',
     grant: 'Device Authorization (RFC 8628)',
     clientType: 'Public',
     description: 'Simulates a smart TV or other input-constrained device. The TV displays a user code while you authorize on a phone or laptop; the device polls for tokens.',

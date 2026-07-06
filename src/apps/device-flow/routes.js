@@ -13,6 +13,15 @@ const config = appConfig('DEVICE_FLOW');
 const lab = getLab('device-flow');
 const SCOPE = 'openid profile';
 
+const PINGONE_SETUP_STEPS = [
+  'Go to <strong>Applications → Applications</strong> and click <strong>+</strong>. Name the app and choose type <strong>Device Authorization</strong>. That single step creates the app <em>and</em> enables the Device Authorization grant — you do not enable the grant separately.',
+  'On the <strong>Configuration</strong> tab, set Token Endpoint Authentication Method to <strong>None</strong> (default for this app type). Redirect URIs are not used; if PingOne requires one, use a placeholder like <code>http://localhost:3000</code>.',
+  'On the <strong>Resources</strong> tab, select scopes <code>openid</code> and <code>profile</code> (Resources → pencil icon → check scopes → Save).',
+  'Enable the application (blue toggle at the top of the details panel).',
+  'Copy the <strong>Client ID</strong> from the Configuration tab into <code>DEVICE_FLOW_CLIENT_ID</code> in your <code>.env</code> file. No client secret is needed.',
+  '<strong>Only if “Device Authorization” is missing from the type list:</strong> create a <strong>Native App</strong>, open Configuration, and under Grant Type enable <strong>Device Authorization</strong> (this is the manual “enable grant” step). Set Token Endpoint Authentication Method to <strong>None</strong>.',
+];
+
 const router = Router();
 
 function emptyDeviceFlow() {
@@ -155,7 +164,7 @@ router.get('/', (req, res) => {
     environmentId: pingoneConfig.environmentId,
     deviceState: publicDeviceState(deviceFlow),
     hideTryIt: true,
-    setupNote: 'Create a Device App in PingOne. No redirect URI is required. Enable the Device Authorization grant.',
+    pingoneSetupSteps: PINGONE_SETUP_STEPS,
   });
 });
 

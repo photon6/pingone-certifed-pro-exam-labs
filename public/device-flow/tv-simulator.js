@@ -41,7 +41,7 @@ function renderInspector() {
 
   const auth = state.authorization;
   const rows = [
-    ['PingOne app type', 'Device App (public client)'],
+    ['PingOne app type', 'Device Authorization (public client)'],
     ['Grant type', 'urn:ietf:params:oauth:grant-type:device_code'],
     ['Client ID', state.clientId || '—'],
     ['Scope', state.scope || '—'],

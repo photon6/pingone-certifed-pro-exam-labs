@@ -25,7 +25,7 @@ Open [http://localhost:3000](http://localhost:3000) for the study dashboard. Sel
 | [API Access](/labs/api-access) | Worker / Resource Server | Bearer JWT validation |
 | [Long-Running Sessions](/labs/long-session) | Web App (OIDC) | Authorization Code + Refresh Token |
 | [Machine-to-Machine](/labs/m2m) | Worker App | Client Credentials |
-| [Device Authorization](/labs/device-flow) | Device App | RFC 8628 Device Authorization (Smart TV sim) |
+| [Device Authorization](/labs/device-flow) | Device Authorization | RFC 8628 Device Authorization (Smart TV sim) |
 | [CIBA](/labs/ciba) | Web App with CIBA | Client Initiated Backchannel Authentication |
 | [Token Exchange](/labs/token-exchange) | Worker App | RFC 8693 Token Exchange |
 | [Enhanced Security](/labs/enhanced-security) | Web App (OIDC) | PAR, PKCE, step-up (`acr_values`) |
@@ -33,7 +33,7 @@ Open [http://localhost:3000](http://localhost:3000) for the study dashboard. Sel
 ## PingOne setup (per lab)
 
 1. Sign in to the [PingOne admin console](https://admin.pingone.com).
-2. For each lab, create an application using the **PingOne App Type** shown on the lab page.
+2. For each lab, create an application using the **PingOne App Type** shown on the lab page. (Device Authorization uses the **Device Authorization** type — not “Device App”. If that type is missing, use **Native App** and enable the Device Authorization grant on the Configuration tab.)
 3. Configure the **redirect URI** exactly as shown (where applicable).
 4. Enable the required **grant type** and scopes.
 5. Copy the Client ID (and Client Secret for confidential clients) into your `.env` file.

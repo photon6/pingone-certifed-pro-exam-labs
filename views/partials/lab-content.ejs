@@ -16,12 +16,19 @@
 
 <section class="panel">
   <h2>PingOne Setup</h2>
+  <% if (typeof pingoneSetupSteps !== 'undefined' && pingoneSetupSteps.length) { %>
+    <ol class="setup-steps">
+      <% pingoneSetupSteps.forEach(function(step) { %>
+        <li><%- step %></li>
+      <% }); %>
+    </ol>
+  <% } else { %>
   <ol class="setup-steps">
     <li>In PingOne admin, create a <strong><%= lab.pingoneType %></strong> application.</li>
     <% if (typeof redirectUri !== 'undefined' && redirectUri) { %>
       <li>Set redirect URI to: <code><%= redirectUri %></code></li>
     <% } else { %>
-      <li>No redirect URI required for this grant type.</li>
+      <li>No redirect URI required for this grant type.<% if (typeof redirectUriNote !== 'undefined' && redirectUriNote) { %> <%- redirectUriNote %><% } %></li>
     <% } %>
     <li>Copy Client ID<% if (typeof tokenAuthMethod !== 'undefined' && tokenAuthMethod === 'private_key_jwt') { %> and configure JWKS below<% } else { %> (and Secret if not using Private Key JWT)<% } %> into your <code>.env</code> file.</li>
     <% if (typeof tokenAuthMethod !== 'undefined' && tokenAuthMethod === 'private_key_jwt') { %>
@@ -32,6 +39,7 @@
       <li><%= setupNote %></li>
     <% } %>
   </ol>
+  <% } %>
   <%- include('jwks-setup') %>
   <div class="exam-topics">
     <strong>Exam topics:</strong>
