@@ -11,38 +11,61 @@
   <main class="container">
     <%- include('partials/lab-content') %>
 
+    <% if (configured) { %>
     <section class="panel">
       <h2>CIBA Backchannel Authentication</h2>
-      <% if (configured) { %>
-        <% if (!authRequest) { %>
-          <form method="post" action="/labs/ciba/initiate" class="stacked-form">
-            <label>Login hint (user email/username)
-              <input type="text" name="loginHint" required placeholder="user@example.com">
-            </label>
-            <label>Binding message (shown to user)
-              <input type="text" name="bindingMessage" value="PingOne CIBA Lab">
-            </label>
-            <button type="submit" class="btn">Initiate CIBA</button>
-          </form>
-        <% } else { %>
-          <div class="result info">
-            <p>User should approve the request on their PingOne authenticator app.</p>
-            <pre><%= JSON.stringify(authRequest, null, 2) %></pre>
-            <form method="post" action="/labs/ciba/poll"><button type="submit" class="btn">Poll for Token</button></form>
-            <form method="post" action="/labs/ciba/clear"><button type="submit" class="btn secondary">Reset</button></form>
-          </div>
-        <% } %>
-        <% if (status === 'complete' && tokens) { %>
-          <div class="result success">
-            <h3>Tokens received</h3>
-            <pre><%= JSON.stringify(tokens, null, 2) %></pre>
-          </div>
-        <% } %>
-        <% if (status === 'error') { %>
-          <div class="alert error"><%= error %></div>
-        <% } %>
+      <p class="hint">The consumption device (this lab) calls <code>/as/cibaAuthorization</code>. PingOne runs your DaVinci CIBA flow to notify the user on their authentication device.</p>
+
+      <% if (!authRequest) { %>
+        <form method="post" action="/labs/ciba/initiate" class="stacked-form">
+          <label>Login hint (user email/username)
+            <input type="text" name="loginHint" required placeholder="user@example.com">
+          </label>
+          <label>Binding message (shown on both devices)
+            <input type="text" name="bindingMessage" value="<%= defaultBindingMessage %>"
+              maxlength="8" pattern="[A-Za-z0-9_-]{1,8}" required
+              title="<%= bindingMessageHint %>">
+          </label>
+          <p class="hint"><%= bindingMessageHint %></p>
+          <label>DaVinci flow policy ID (<code>acr_values</code>)
+            <input type="text" name="acrValues" value="<%= davinciPolicyId %>" required
+              placeholder="Flow policy ID from DaVinci application">
+          </label>
+          <p class="hint">Required. PingOne uses this to select your CIBA DaVinci flow. Set default in <code>CIBA_DAVINCI_POLICY_ID</code>.</p>
+          <button type="submit" class="btn">Initiate CIBA</button>
+        </form>
+      <% } else { %>
+        <div class="result info">
+          <p>User should approve the request on their authentication device (email magic link from DaVinci).</p>
+          <pre><%= JSON.stringify(authRequest, null, 2) %></pre>
+          <form method="post" action="/labs/ciba/poll"><button type="submit" class="btn">Poll for Token</button></form>
+          <form method="post" action="/labs/ciba/clear"><button type="submit" class="btn secondary">Reset</button></form>
+        </div>
+      <% } %>
+      <% if (status === 'complete' && tokens) { %>
+        <div class="result success">
+          <h3>Tokens received</h3>
+          <pre><%= JSON.stringify(tokens, null, 2) %></pre>
+        </div>
+      <% } %>
+      <% if (status === 'error') { %>
+        <div class="alert error"><%= error %></div>
       <% } %>
     </section>
+
+    <section class="panel">
+      <h2>DaVinci CIBA flow</h2>
+      <p class="hint">CIBA in PingOne requires a DaVinci flow with <strong>PingOne Flow</strong> and <strong>CIBA Flow</strong> enabled, assigned to this OIDC app as a DaVinci policy.</p>
+      <% if (davinciConsoleUrl) { %>
+        <p><a class="btn secondary" href="<%= davinciConsoleUrl %>" target="_blank" rel="noopener">Open DaVinci / PingOne console</a></p>
+        <p class="hint">Configure flows in DaVinci, then attach the flow policy to your CIBA app under <strong>Applications → Policies → DaVinci Policies</strong>.</p>
+      <% } %>
+      <% if (davinciPolicyId) { %>
+        <p class="hint">Configured policy ID: <code><%= davinciPolicyId %></code></p>
+      <% } %>
+      <p class="hint">See <a href="https://docs.pingidentity.com/pingone/use_cases/p1_configure_ciba_flow.html" target="_blank" rel="noopener">PingOne: Configuring a CIBA flow</a> for the full walkthrough (notification templates, sample flow import, flow policy creation).</p>
+    </section>
+    <% } %>
   </main>
   <%- include('partials/footer') %>
 </body>

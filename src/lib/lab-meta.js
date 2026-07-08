@@ -76,8 +76,8 @@ export const labs = [
     pingoneType: 'Web App with CIBA',
     grant: 'Client Initiated Backchannel Authentication',
     clientType: 'Confidential',
-    description: 'Decoupled authentication: the client initiates auth via backchannel while the user approves on their PingOne mobile app or authenticator.',
-    examTopics: ['CIBA flow', 'login_hint', 'auth_req_id polling', 'Decoupled authentication'],
+    description: 'Decoupled authentication: the client initiates auth via backchannel while the user approves on their authentication device. Requires a DaVinci CIBA flow policy.',
+    examTopics: ['CIBA flow', 'login_hint', 'auth_req_id polling', 'binding_message', 'DaVinci CIBA flow (acr_values)'],
   },
   {
     id: 'token-exchange',

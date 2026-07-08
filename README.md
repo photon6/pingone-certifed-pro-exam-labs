@@ -53,6 +53,7 @@ Open [http://localhost:3000](http://localhost:3000) for the study dashboard. Sel
 | `M2M_CLIENT_ID` / `SECRET` | Machine-to-machine lab |
 | `DEVICE_FLOW_CLIENT_ID` | Device flow lab |
 | `CIBA_CLIENT_ID` / `SECRET` | CIBA lab |
+| `CIBA_DAVINCI_POLICY_ID` | DaVinci flow policy ID (`acr_values`) — required for CIBA |
 | `TOKEN_EXCHANGE_CLIENT_ID` / `SECRET` | Token exchange lab |
 | `ENHANCED_SECURITY_CLIENT_ID` / `SECRET` | Enhanced security lab |
 | `PINGONE_TOKEN_AUTH_METHOD` | Global default: `client_secret_basic`, `client_secret_post`, or `private_key_jwt` |

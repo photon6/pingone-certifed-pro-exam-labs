@@ -62,3 +62,32 @@ export function missingConfigMessage(appName, clientId, tokenAuthMethod = 'clien
   }
   return null;
 }
+
+export function cibaAppConfig() {
+  const prefix = 'CIBA';
+  const base = appConfig(prefix, { path: '/labs/ciba' });
+  const davinciPolicyId = process.env.CIBA_DAVINCI_POLICY_ID
+    || process.env.CIBA_ACR_VALUES
+    || process.env.CIBA_DAVINCI_FLOW_POLICY_ID
+    || '';
+
+  return {
+    ...base,
+    davinciPolicyId,
+    davinciConsoleUrl: process.env.CIBA_DAVINCI_CONSOLE_URL
+      || process.env.DAVINCI_CONSOLE_URL
+      || (pingoneConfig.environmentId
+        ? `https://console.pingone.com/index.html?env=${pingoneConfig.environmentId}`
+        : null),
+    defaultBindingMessage: process.env.CIBA_DEFAULT_BINDING_MESSAGE || 'PingLab',
+  };
+}
+
+export function cibaMissingConfigMessage(config) {
+  const base = missingConfigMessage('ciba', config.clientId, config.tokenAuthMethod);
+  if (base) return base;
+  if (!config.davinciPolicyId) {
+    return 'Set CIBA_DAVINCI_POLICY_ID in your .env file (DaVinci flow policy ID for acr_values).';
+  }
+  return null;
+}
